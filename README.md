@@ -81,6 +81,7 @@ D2DX uses the following third party libraries:
 - stb_image by Sean Barrett
 - pocketlzma by Robin Berg Pettersen
 - 9-tap Catmull-Rom texture filtering by TheRealMJP.
+- xxHash by Yann Collet
 
 ## Donations
 
