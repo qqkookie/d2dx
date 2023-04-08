@@ -4,6 +4,7 @@
 **.res
 **/Debug/
 **/Release/
+**/Release (ResMod)/
 *_cso.h
 publish/
 **_dxbc.txt

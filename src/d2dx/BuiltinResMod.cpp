@@ -24,79 +24,12 @@
 
 using namespace d2dx;
 
-_Use_decl_annotations_
-BuiltinResMod::BuiltinResMod(
-    HMODULE hModule,
-    Size gameSize,
-    const std::shared_ptr<IGameHelper>& gameHelper)
-{
-    if (!hModule || !gameHelper)
-    {
-        D2DX_CHECK_HR(E_INVALIDARG);
-    }
-
-    _isActive = false;
-
-#ifndef D2DX_UNITTEST
-    if (IsCompatible(gameHelper.get()))
-    {
-        D2DX_LOG("Writing SGD2FreeRes files.");
-
-        if (!WriteResourceToFile(hModule, IDR_SGD2FR_MPQ, "mpq", "d2dx_sgd2freeres.mpq"))
-        {
-            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
-        }
-
-        if (!WriteResourceToFile(hModule, IDR_SGD2FR_DLL, "dll", "d2dx_sgd2freeres.dll"))
-        {
-            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
-        }
-
-        if (!WriteConfig(gameSize))
-        {
-            D2DX_LOG("Failed to write SGD2FreeRes configuration.");
-        }
-
-        D2DX_LOG("Initializing SGD2FreeRes.");
-        LoadLibraryA("d2dx_sgd2freeres.dll");
-
-        _isActive = true;
-        return;
-    }
-#endif
-}
-
-bool BuiltinResMod::IsActive() const
-{
-    return _isActive;
-}
-
-_Use_decl_annotations_
-bool BuiltinResMod::IsCompatible(
-    IGameHelper* gameHelper)
-{
-    auto gameVersion = gameHelper->GetVersion();
-
-    if (gameVersion != d2dx::GameVersion::Lod109d &&
-        gameVersion != d2dx::GameVersion::Lod110f &&
-        gameVersion != d2dx::GameVersion::Lod112 &&
-        gameVersion != d2dx::GameVersion::Lod113c &&
-        gameVersion != d2dx::GameVersion::Lod113d &&
-        gameVersion != d2dx::GameVersion::Lod114d)
-    {
-        D2DX_LOG("Unsupported game version, won't use built-in resolution mod.");
-        return false;
-    }
-
-    return true;
-}
-
-_Use_decl_annotations_
-bool BuiltinResMod::WriteResourceToFile(
-    HMODULE hModule,
-    int32_t resourceId,
-    const char* ext,
-    const char* filename)
+#ifdef D2DX_RES_MOD
+bool WriteResourceToFile(
+    _In_ HMODULE hModule,
+    _In_ int32_t resourceId,
+    _In_z_ const char* ext,
+    _In_z_ const char* filename)
 {
     void* payloadPtr = nullptr;
     DWORD payloadSize = 0;
@@ -115,7 +48,7 @@ bool BuiltinResMod::WriteResourceToFile(
 
     resourceData = LoadResource(hModule, resourceInfo);
     if (!resourceData)
-    { 
+    {
         succeeded = false;
         goto end;
     }
@@ -127,7 +60,7 @@ bool BuiltinResMod::WriteResourceToFile(
         succeeded = false;
         goto end;
     }
-    
+
     succeeded = DecompressLZMAToFile((const uint8_t*)payloadPtr, payloadSize, filename);
 
 end:
@@ -143,8 +76,7 @@ end:
     return succeeded;
 }
 
-_Use_decl_annotations_
-bool BuiltinResMod::WriteConfig(
+bool WriteConfig(
     _In_ Size gameSize)
 {
     HANDLE file = nullptr;
@@ -201,4 +133,76 @@ end:
     }
 
     return succeeded;
+}
+#endif
+
+_Use_decl_annotations_
+BuiltinResMod::BuiltinResMod(
+    HMODULE hModule,
+    Size gameSize,
+    const std::shared_ptr<IGameHelper>& gameHelper)
+{
+    if (!hModule || !gameHelper)
+    {
+        D2DX_CHECK_HR(E_INVALIDARG);
+    }
+
+    _isActive = false;
+
+#ifndef D2DX_UNITTEST
+    if (IsCompatible(gameHelper.get()))
+    {
+#ifdef D2DX_RES_MOD
+        D2DX_LOG("Writing SGD2FreeRes files.");
+
+        if (!WriteResourceToFile(hModule, IDR_SGD2FR_MPQ, "mpq", "d2dx_sgd2freeres.mpq"))
+        {
+            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+        }
+
+        if (!WriteResourceToFile(hModule, IDR_SGD2FR_DLL, "dll", "d2dx_sgd2freeres.dll"))
+        {
+            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+        }
+
+        if (!WriteConfig(gameSize))
+        {
+            D2DX_LOG("Failed to write SGD2FreeRes configuration.");
+        }
+
+        D2DX_LOG("Initializing SGD2FreeRes.");
+        LoadLibraryA("d2dx_sgd2freeres.dll");
+#else
+        D2DX_LOG("Initializing SGD2FreeRes.");
+        LoadLibraryA("SGD2FreeRes.dll");
+#endif
+        _isActive = true;
+        return;
+    }
+#endif
+}
+
+bool BuiltinResMod::IsActive() const
+{
+    return _isActive;
+}
+
+_Use_decl_annotations_
+bool BuiltinResMod::IsCompatible(
+    IGameHelper* gameHelper)
+{
+    auto gameVersion = gameHelper->GetVersion();
+
+    if (gameVersion != d2dx::GameVersion::Lod109d &&
+        gameVersion != d2dx::GameVersion::Lod110f &&
+        gameVersion != d2dx::GameVersion::Lod112 &&
+        gameVersion != d2dx::GameVersion::Lod113c &&
+        gameVersion != d2dx::GameVersion::Lod113d &&
+        gameVersion != d2dx::GameVersion::Lod114d)
+    {
+        D2DX_LOG("Unsupported game version, won't use built-in resolution mod.");
+        return false;
+    }
+
+    return true;
 }

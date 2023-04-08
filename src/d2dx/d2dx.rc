@@ -13,6 +13,85 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Neutral (Default) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
+LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,99,330,0
+ PRODUCTVERSION 0,99,330,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040004b0"
+        BEGIN
+            VALUE "CompanyName", "Bolrog"
+            VALUE "FileDescription", "Glide wrapper for D2"
+            VALUE "FileVersion", "0.99.529.0"
+            VALUE "InternalName", "d2dx.dll"
+            VALUE "LegalCopyright", "Copyright (C) 2021"
+            VALUE "OriginalFilename", "d2dx.dll"
+            VALUE "ProductName", "D2DX"
+            VALUE "ProductVersion", "0.99.529.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x400, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// MPQ
+//
+
+#if defined(APSTUDIO_INVOKED) || defined(D2DX_RES_MOD)
+#if defined(APSTUDIO_INVOKED)
+IDR_SGD2FR_MPQ$(D2DX_RES_MOD) MPQ                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.mpq.lzma"
+
+#else
+IDR_SGD2FR_MPQ          MPQ                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.mpq.lzma"
+
+#endif
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DLL
+//
+
+#if defined(APSTUDIO_INVOKED) || defined(D2DX_RES_MOD)
+#if defined(APSTUDIO_INVOKED)
+IDR_SGD2FR_DLL$(D2DX_RES_MOD) DLL                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.dll.lzma"
+
+#else
+IDR_SGD2FR_DLL          DLL                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.dll.lzma"
+
+#endif
+#endif
+#endif    // Neutral (Default) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // Swedish (Sweden) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_SVE)
@@ -43,54 +122,6 @@ BEGIN
 END
 
 #endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,99,330,0
- PRODUCTVERSION 0,99,330,0
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x40004L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "041d04b0"
-        BEGIN
-            VALUE "CompanyName", "Bolrog"
-            VALUE "FileDescription", "Glide wrapper for D2"
-            VALUE "FileVersion", "0.99.529.0"
-            VALUE "InternalName", "d2dx.dll"
-            VALUE "LegalCopyright", "Copyright (C) 2021"
-            VALUE "OriginalFilename", "d2dx.dll"
-            VALUE "ProductName", "D2DX"
-            VALUE "ProductVersion", "0.99.529.0"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x41d, 1200
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// mpq
-//
-
-IDR_SGD2FR_MPQ          mpq                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.mpq.lzma"
-IDR_SGD2FR_DLL          dll                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.dll.lzma"
 
 #endif    // Swedish (Sweden) resources
 /////////////////////////////////////////////////////////////////////////////
