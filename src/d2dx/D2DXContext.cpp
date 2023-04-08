@@ -343,9 +343,9 @@ void D2DXContext::CheckMajorGameState()
 		for (int32_t i = 0; i < batchCount; ++i)
 		{
 			const Batch& batch = _batches.items[i];
-			const int32_t y0 = _vertices.items[batch.GetStartVertex()].GetY();
+			const float y0 = _vertices.items[batch.GetStartVertex()].GetY();
 
-			if (batch.GetHash() == 0x84ab94c374c42d9a && y0 >= 550)
+			if (batch.GetHash() == 0x84ab94c374c42d9a && y0 >= 550.0f)
 			{
 				_majorGameState = MajorGameState::TitleScreen;
 				break;
@@ -576,7 +576,7 @@ void D2DXContext::OnDrawPoint(
 
 	const D2::Vertex* d2Vertex = (const D2::Vertex*)pt;
 
-	vertex0.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+	vertex0.SetPosition(d2Vertex->x, d2Vertex->y);
 	vertex0.SetTexcoord((int32_t)d2Vertex->s >> stShift, (int32_t)d2Vertex->t >> stShift);
 	vertex0.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
 	vertex0.SetSurfaceId(_surfaceIdTracker.GetCurrentSurfaceId());
@@ -677,11 +677,11 @@ void D2DXContext::OnDrawLine(
 		Vertex vertex3 = vertex0;
 		Vertex vertex4 = vertex0;
 
-		vertex0.SetPosition((int32_t)midPos.x, (int32_t)midPos.y);
-		vertex1.SetPosition((int32_t)startPos.x, (int32_t)startPos.y);
-		vertex2.SetPosition((int32_t)(midPos.x + wideningVec.x), (int32_t)(midPos.y + wideningVec.y));
-		vertex3.SetPosition((int32_t)endPos.x, (int32_t)endPos.y);
-		vertex4.SetPosition((int32_t)(midPos.x - wideningVec.x), (int32_t)(midPos.y - wideningVec.y));
+		vertex0.SetPosition(midPos.x, midPos.y);
+		vertex1.SetPosition(startPos.x, startPos.y);
+		vertex2.SetPosition((midPos.x + wideningVec.x), (midPos.y + wideningVec.y));
+		vertex3.SetPosition(endPos.x, endPos.y);
+		vertex4.SetPosition((midPos.x - wideningVec.x), (midPos.y - wideningVec.y));
 
 		uint32_t c = vertex0.GetColor();
 		c &= 0x00FFFFFF;
@@ -714,38 +714,25 @@ void D2DXContext::OnDrawLine(
 	}
 	else
 	{
-		OffsetF wideningVec = { d2Vertex0->y - d2Vertex1->y, d2Vertex1->x - d2Vertex0->x };
-		const float len = wideningVec.Length();
-		const float halfinvlen = 1.0f / (2.0f * len);
-		wideningVec *= halfinvlen;
+		OffsetF widening = { d2Vertex1->y - d2Vertex0->y, d2Vertex1->x - d2Vertex0->x };
+		widening.NormalizeTo(0.5f);
 
 		Vertex vertex1 = vertex0;
 		Vertex vertex2 = vertex0;
 		Vertex vertex3 = vertex0;
 
-		vertex0.SetPosition(
-			(int32_t)(d2Vertex0->x - wideningVec.x),
-			(int32_t)(d2Vertex0->y - wideningVec.y));
-
-		vertex1.SetPosition(
-			(int32_t)(d2Vertex0->x + wideningVec.x),
-			(int32_t)(d2Vertex0->y + wideningVec.y));
-
-		vertex2.SetPosition(
-			(int32_t)(d2Vertex1->x - wideningVec.x),
-			(int32_t)(d2Vertex1->y - wideningVec.y));
-
-		vertex3.SetPosition(
-			(int32_t)(d2Vertex1->x + wideningVec.x),
-			(int32_t)(d2Vertex1->y + wideningVec.y));
+		vertex0.SetPosition(d2Vertex1->x + widening.x, d2Vertex1->y - widening.y);
+		vertex1.SetPosition(d2Vertex0->x + widening.x, d2Vertex0->y - widening.y);
+		vertex2.SetPosition(d2Vertex1->x - widening.x, d2Vertex1->y + widening.y);
+		vertex3.SetPosition(d2Vertex0->x - widening.x, d2Vertex0->y + widening.y);
 
 		assert((_vertexCount + 6) < _vertices.capacity);
 		_vertices.items[_vertexCount++] = vertex0;
 		_vertices.items[_vertexCount++] = vertex1;
 		_vertices.items[_vertexCount++] = vertex2;
 		_vertices.items[_vertexCount++] = vertex1;
-		_vertices.items[_vertexCount++] = vertex2;
 		_vertices.items[_vertexCount++] = vertex3;
+		_vertices.items[_vertexCount++] = vertex2;
 
 		batch.SetVertexCount(6);
 	}
@@ -839,7 +826,7 @@ void D2DXContext::OnDrawVertexArray(
 	for (int32_t i = 0; i < 3; ++i)
 	{
 		const D2::Vertex* d2Vertex = (const D2::Vertex*)pointers[i];
-		v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+		v.SetPosition(d2Vertex->x, d2Vertex->y);
 		v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
 		v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
 		*pVertices++ = v;
@@ -854,7 +841,7 @@ void D2DXContext::OnDrawVertexArray(
 			*pVertices++ = vertex0;
 			*pVertices++ = pVertices[-2];
 			const D2::Vertex* d2Vertex = (const D2::Vertex*)pointers[i + 3];
-			v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+			v.SetPosition(d2Vertex->x, d2Vertex->y);
 			v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
 			v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
 			*pVertices++ = v;
@@ -867,7 +854,7 @@ void D2DXContext::OnDrawVertexArray(
 			*pVertices++ = pVertices[-2];
 			*pVertices++ = pVertices[-2];
 			const D2::Vertex* d2Vertex = (const D2::Vertex*)pointers[i + 3];
-			v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+			v.SetPosition(d2Vertex->x, d2Vertex->y);
 			v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
 			v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
 			*pVertices++ = v;
@@ -919,7 +906,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 
 	for (int32_t i = 0; i < 4; ++i)
 	{
-		v.SetPosition((int32_t)d2Vertices[i].x, (int32_t)d2Vertices[i].y);
+		v.SetPosition(d2Vertices[i].x, d2Vertices[i].y);
 		v.SetTexcoord((int32_t)d2Vertices[i].s >> _glideState.stShift, (int32_t)d2Vertices[i].t >> _glideState.stShift);
 		v.SetColor(maskedConstantColor | (d2Vertices[i].color & iteratedColorMask));
 		pVertices[i] = v;
@@ -1111,14 +1098,16 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	Size gameSize;
 	_renderContext->GetCurrentMetrics(&gameSize, nullptr, nullptr);
 
-	const int32_t x = gameSize.width - 90 - 16;
-	const int32_t y = gameSize.height - 50 - 16;
+	const float x1 = static_cast<float>(gameSize.width - 90 - 16);
+	const float x2 = static_cast<float>(gameSize.width - 10 - 16);
+	const float y1 = static_cast<float>(gameSize.height - 50 - 16);
+	const float y2 = static_cast<float>(gameSize.height - 9 - 16);
 	const uint32_t color = 0xFFFFa090;
 
-	Vertex vertex0(x, y, 0, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
-	Vertex vertex1(x + 80, y, 80, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
-	Vertex vertex2(x + 80, y + 41, 80, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
-	Vertex vertex3(x, y + 41, 0, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex vertex0(x1, y1, 0, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex vertex1(x2, y1, 80, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex vertex2(x2, y2, 80, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex vertex3(x1, y2, 0, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
 
 	assert((_vertexCount + 6) < _vertices.capacity);
 	_vertices.items[_vertexCount++] = vertex0;
