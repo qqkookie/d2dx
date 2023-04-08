@@ -34,6 +34,9 @@
     <FxCompile Include="DisplayNearestScalePS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
+    <FxCompile Include="GameBilinearPS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureCache.cpp" />

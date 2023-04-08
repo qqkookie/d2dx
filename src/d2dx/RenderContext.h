@@ -171,7 +171,9 @@ namespace d2dx
 		{
 			float screenSize[2] = { 0.0f, 0.0f };
 			float invScreenSize[2] = { 0.0f, 0.0f };
-			uint32_t flags[4] = { 0, 0, 0, 0 };
+			uint32_t flags[2] = { 0, 0 };
+			float sharpness = 1.0f;
+			uint32_t padding = 0;
 		};
 
 		static_assert(sizeof(Constants) == 8 * 4, "size of Constants");

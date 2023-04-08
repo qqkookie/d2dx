@@ -154,6 +154,9 @@ namespace d2dx
 
 		virtual void OnBufferClear();
 
+		virtual void OnTexFilterMode(
+			_In_ GrChipID_t tmu,
+			_In_ GrTextureFilterMode_t filterMode);
 #pragma endregion IGlide3x
 
 #pragma region ID2DXContext

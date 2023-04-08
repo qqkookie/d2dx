@@ -35,7 +35,7 @@ namespace d2dx
 			_isChromaKeyEnabled_gameAddress_paletteIndex(0),
 			_textureCategory_primitiveType_combiners(0),
 			_startVertexLow(0),
-			_textureAtlas(0)
+			_textureAtlas_filterMode(0)
 		{
 		}
 
@@ -182,13 +182,14 @@ namespace d2dx
 
 		inline uint32_t GetTextureAtlas() const noexcept
 		{
-			return (uint32_t)(_textureAtlas & 7);
+			return (uint32_t)(_textureAtlas_filterMode & 7);
 		}
 
 		inline void SetTextureAtlas(uint32_t textureAtlas) noexcept
 		{
 			assert(textureAtlas < 8);
-			_textureAtlas = textureAtlas & 7;
+			_textureAtlas_filterMode &= ~7;
+			_textureAtlas_filterMode |= textureAtlas & 7;
 		}
 
 		inline uint32_t GetTextureIndex() const noexcept
@@ -200,7 +201,7 @@ namespace d2dx
 		{
 			assert(textureIndex < 4096);
 			_startVertexHigh_textureIndex &= ~0x0FFF;
-			_startVertexHigh_textureIndex = (uint16_t)(textureIndex & 0x0FFF);
+			_startVertexHigh_textureIndex |= (uint16_t)(textureIndex & 0x0FFF);
 		}
 
 		inline TextureCategory GetTextureCategory() const noexcept
@@ -234,6 +235,16 @@ namespace d2dx
 			_textureStartAddress = startAddress & 0xFFFF;
 		}
 
+		inline void SetFilterMode(GrTextureFilterMode_t mode) noexcept {
+			assert(mode == 0 || mode == 1);
+			_textureAtlas_filterMode &= ~128;
+			_textureAtlas_filterMode |= mode << 7;
+		}
+
+		inline GrTextureFilterMode_t GetFilterMode() const noexcept {
+			return _textureAtlas_filterMode >> 7;
+		}
+
 		inline bool IsValid() const noexcept
 		{
 			return _textureStartAddress != 0;
@@ -248,7 +259,7 @@ namespace d2dx
 		uint8_t _textureHeight_textureWidth_alphaBlend;			// HHHWWWBB
 		uint8_t _isChromaKeyEnabled_gameAddress_paletteIndex;	// CGGGPPPP
 		uint8_t _textureCategory_primitiveType_combiners;		// TTT.PPCC
-		uint8_t _textureAtlas;									// .....AAA
+		uint8_t _textureAtlas_filterMode;						// M....AAA
 	};
 
 	static_assert(sizeof(Batch) == 24, "sizeof(Batch)");

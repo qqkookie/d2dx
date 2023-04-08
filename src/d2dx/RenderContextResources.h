@@ -40,15 +40,16 @@ namespace d2dx
 	enum class RenderContextPixelShader
 	{
 		Game = 0,
-		Gamma = 1,
-		Video = 2,
-		DisplayIntegerScale = 3,
-		DisplayNonintegerScale = 4,
-		DisplayBilinearScale = 5,
-		DisplayCatmullRomScale = 6,
-		DisplayNearestScale = 7,
-		ResolveAA = 8,
-		Count = 9
+		GameBilinear = 1,
+		Gamma = 2,
+		Video = 3,
+		DisplayIntegerScale = 4,
+		DisplayNonintegerScale = 5,
+		DisplayBilinearScale = 6,
+		DisplayCatmullRomScale = 7,
+		DisplayNearestScale = 8,
+		ResolveAA = 9,
+		Count = 10
 	};
 
 	enum class RenderContextTexture1D

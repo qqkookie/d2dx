@@ -321,6 +321,16 @@ void D2DXContext::OnTexSource(
 	}
 }
 
+
+_Use_decl_annotations_
+void D2DXContext::OnTexFilterMode(
+	GrChipID_t tmu,
+	GrTextureFilterMode_t filterMode)
+{
+	assert(tmu == 0);
+	_scratchBatch.SetFilterMode(filterMode);
+}
+
 void D2DXContext::CheckMajorGameState()
 {
 	const int32_t batchCount = (int32_t)_batchCount;
@@ -382,6 +392,7 @@ void D2DXContext::DrawBatches(
 			if (_renderContext->GetTextureCache(batch) != _renderContext->GetTextureCache(mergedBatch) ||
 				batch.GetTextureAtlas() != mergedBatch.GetTextureAtlas() ||
 				batch.GetAlphaBlend() != mergedBatch.GetAlphaBlend() ||
+				batch.GetFilterMode() != mergedBatch.GetFilterMode() ||
 				((mergedBatch.GetVertexCount() + batch.GetVertexCount()) > 65535))
 			{
 				_renderContext->Draw(mergedBatch, startVertexLocation);

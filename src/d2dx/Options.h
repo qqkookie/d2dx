@@ -91,6 +91,11 @@ namespace d2dx
 
 		void SetUpscaleMethod(
 			_In_ UpscaleMethod upscaleMethod) noexcept;
+		
+		float GetBilinearSharpness() const;
+
+		void SetBilinearSharpness(
+			_In_ float sharpness) noexcept;
 
 	private:
 		uint32_t _flags = 0;
@@ -98,5 +103,6 @@ namespace d2dx
 		Offset _windowPosition{ -1, -1 };
 		Size _userSpecifiedGameSize{ -1, -1 };
 		UpscaleMethod _upscaleMethod{ UpscaleMethod::HighQuality };
+		float _bilinearSharpness = 2.0;
 	};
 }

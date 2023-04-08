@@ -432,6 +432,10 @@ FX_ENTRY void FX_CALL
 FX_ENTRY void FX_CALL
 	grTexFilterMode(GrChipID_t tmu, GrTextureFilterMode_t minfilter_mode, GrTextureFilterMode_t magfilter_mode)
 {
+	if (minfilter_mode == magfilter_mode)
+	{
+		D2DXContextFactory::GetInstance()->OnTexFilterMode(tmu, minfilter_mode);
+	}
 }
 
 FX_ENTRY void FX_CALL

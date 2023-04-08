@@ -128,5 +128,9 @@ namespace d2dx
 		virtual void OnBufferSwap() = 0;
 
 		virtual void OnBufferClear() = 0;
+
+		virtual void OnTexFilterMode(
+			_In_ GrChipID_t tmu,
+			_In_ GrTextureFilterMode_t filterMode) = 0;
 	};
 }

@@ -105,6 +105,12 @@ void Options::ApplyCfg(
 		{
 			SetUpscaleMethod((UpscaleMethod)upscaleMethod.u.i);
 		}
+
+		auto bilinearSharpness = toml_double_in(game, "bilinear-sharpness");
+		if (bilinearSharpness.ok)
+		{
+			SetBilinearSharpness(bilinearSharpness.u.d);
+		}
 	}
 
 	auto window = toml_table_in(root, "window");
@@ -244,4 +250,15 @@ void Options::SetUpscaleMethod(
 	{
 		_upscaleMethod = upscale;
 	}
+}
+
+float Options::GetBilinearSharpness() const
+{
+	return _bilinearSharpness;
+}
+
+void Options::SetBilinearSharpness(
+	_In_ float sharpness) noexcept
+{
+	_bilinearSharpness = max(sharpness, 1.0);
 }

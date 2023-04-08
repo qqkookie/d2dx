@@ -67,6 +67,8 @@ RenderContext::RenderContext(
 
 	memset(&_shadowState, 0, sizeof(_shadowState));
 
+	_constants.sharpness = _d2dxContext->GetOptions().GetBilinearSharpness();
+
 	_desktopSize = { GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
 	_desktopClientMaxHeight = GetSystemMetrics(SM_CYFULLSCREEN);
 
@@ -317,9 +319,13 @@ void RenderContext::Draw(
 
 	ITextureCache* atlas = GetTextureCache(batch);
 
+	RenderContextPixelShader shader = batch.GetFilterMode() == GR_TEXTUREFILTER_BILINEAR
+		? RenderContextPixelShader::GameBilinear
+		: RenderContextPixelShader::Game;
+
 	SetShaderState(
 		_resources->GetVertexShader(RenderContextVertexShader::Game),
-		_resources->GetPixelShader(RenderContextPixelShader::Game),
+		_resources->GetPixelShader(shader),
 		atlas ? atlas->GetSrv(batch.GetTextureAtlas()) : nullptr,
 		_resources->GetTexture1DSrv(RenderContextTexture1D::Palette));
 

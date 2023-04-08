@@ -21,7 +21,9 @@ cbuffer Constants : register(b0)
 {
 	float2 c_screenSize : packoffset(c0);
 	float2 c_invScreenSize : packoffset(c0.z);
-	uint4 flagsx : packoffset(c1);
+	uint2 c_flagsx : packoffset(c1);
+	float c_sharpness : packoffset(c1.z);
+	uint c_padding : packoffset(c1.w);
 };
 
 SamplerState PointSampler : register(s0);
