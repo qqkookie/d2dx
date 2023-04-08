@@ -118,205 +118,121 @@ namespace d2dx
 		Count = 8,
 	};
 
-	struct OffsetF final
+	template<class T>
+	struct OffsetT final
 	{
-		float x = 0;
-		float y = 0;
+		T x = T{ 0 };
+		T y = T{ 0 };
 
-		OffsetF(float x_, float y_) noexcept :
+		constexpr OffsetT(T x_, T y_) noexcept :
 			x{ x_ },
 			y{ y_ }
 		{
 		}
 
-		OffsetF& operator+=(const OffsetF& rhs) noexcept
+		template<class U>
+		constexpr explicit OffsetT(const OffsetT<U>& other) noexcept:
+			x(static_cast<T>(other.x)),
+			y(static_cast<T>(other.y))
+		{
+		}
+
+		constexpr OffsetT& operator+=(const OffsetT& rhs) noexcept
 		{
 			x += rhs.x;
 			y += rhs.y;
 			return *this;
 		}
 
-		OffsetF& operator-=(const OffsetF& rhs) noexcept
+		constexpr OffsetT& operator-=(const OffsetT& rhs) noexcept
 		{
 			x -= rhs.x;
 			y -= rhs.y;
 			return *this;
 		}
 
-		OffsetF& operator*=(const OffsetF& rhs) noexcept
+		constexpr OffsetT& operator*=(const OffsetT& rhs) noexcept
 		{
 			x *= rhs.x;
 			y *= rhs.y;
 			return *this;
 		}
 
-		OffsetF& operator+=(float rhs) noexcept
+		constexpr OffsetT& operator+=(T rhs) noexcept
 		{
 			x += rhs;
 			y += rhs;
 			return *this;
 		}
 
-		OffsetF& operator-=(float rhs) noexcept
+		constexpr OffsetT& operator-=(T rhs) noexcept
 		{
 			x -= rhs;
 			y -= rhs;
 			return *this;
 		}
 
-		OffsetF& operator*=(float rhs) noexcept
+		constexpr OffsetT& operator*=(T rhs) noexcept
 		{
 			x *= rhs;
 			y *= rhs;
 			return *this;
 		}
 
-		OffsetF operator+(const OffsetF& rhs) const noexcept
+		constexpr OffsetT operator+(const OffsetT& rhs) const noexcept
 		{
 			return { x + rhs.x, y + rhs.y };
 		}
 
-		OffsetF operator-(const OffsetF& rhs) const noexcept
+		constexpr OffsetT operator-(const OffsetT& rhs) const noexcept
 		{
 			return { x - rhs.x, y - rhs.y };
 		}
 
-		OffsetF operator*(const OffsetF& rhs) const noexcept
+		constexpr OffsetT operator*(const OffsetT& rhs) const noexcept
 		{
 			return { x * rhs.x, y * rhs.y };
 		}
 
-		OffsetF operator+(float rhs) const noexcept
+		constexpr OffsetT operator+(T rhs) const noexcept
 		{
 			return { x + rhs, y + rhs };
 		}
 
-		OffsetF operator-(float rhs) const noexcept
+		constexpr OffsetT operator-(T rhs) const noexcept
 		{
 			return { x - rhs, y - rhs };
 		}
 
-		OffsetF operator*(float rhs) const noexcept
+		constexpr OffsetT operator*(T rhs) const noexcept
 		{
 			return { x * rhs, y * rhs };
 		}
 
-		bool operator==(const OffsetF& rhs) const noexcept
+		constexpr bool operator==(const OffsetT& rhs) const noexcept = default;
+		constexpr bool operator!=(const OffsetT& rhs) const noexcept = default;
+
+		constexpr T Length() const noexcept
 		{
-			return x == rhs.x && y == rhs.y;
+			return std::hypot(x, y);
 		}
 
-		float Length() const noexcept
+		constexpr void Normalize() noexcept
 		{
-			const float lensqr = x * x + y * y;
-			return lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
+			NormalizeTo(T { 1.0 });
 		}
 
-		void Normalize() noexcept
+		constexpr void NormalizeTo(T target) noexcept
 		{
-			const float lensqr = x * x + y * y;
-			const float len = lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
-			const float invlen = 1.0f / len;
-			x *= invlen;
-			y *= invlen;
-		}
-	};
-
-	struct Offset final
-	{
-		int32_t x = 0;
-		int32_t y = 0;
-
-		Offset(int32_t x_, int32_t y_) noexcept :
-			x{ x_ },
-			y{ y_ }
-		{
-		}
-
-		Offset(const OffsetF& rhs) noexcept :
-			x{ (int32_t)rhs.x },
-			y{ (int32_t)rhs.y }
-		{
-		}
-
-		Offset& operator+=(const Offset& rhs) noexcept
-		{
-			x += rhs.x;
-			y += rhs.y;
-			return *this;
-		}
-
-		Offset& operator-=(const Offset& rhs) noexcept
-		{
-			x -= rhs.x;
-			y -= rhs.y;
-			return *this;
-		}
-
-		Offset& operator*=(const Offset& rhs) noexcept
-		{
-			x *= rhs.x;
-			y *= rhs.y;
-			return *this;
-		}
-
-		Offset& operator+=(int32_t rhs) noexcept
-		{
-			x += rhs;
-			y += rhs;
-			return *this;
-		}
-
-		Offset& operator-=(int32_t rhs) noexcept
-		{
-			x -= rhs;
-			y -= rhs;
-			return *this;
-		}
-
-		Offset& operator*=(int32_t rhs) noexcept
-		{
-			x *= rhs;
-			y *= rhs;
-			return *this;
-		}
-
-		Offset operator+(const Offset& rhs) const noexcept
-		{
-			return { x + rhs.x, y + rhs.y };
-		}
-
-		Offset operator-(const Offset& rhs) const noexcept
-		{
-			return { x - rhs.x, y - rhs.y };
-		}
-
-		Offset operator*(const Offset& rhs) const noexcept
-		{
-			return { x * rhs.x, y * rhs.y };
-		}
-
-		Offset operator+(int32_t rhs) const noexcept
-		{
-			return { x + rhs, y + rhs };
-		}
-
-		Offset operator-(int32_t rhs) const noexcept
-		{
-			return { x - rhs, y - rhs };
-		}
-
-		Offset operator*(int32_t rhs) const noexcept
-		{
-			return { x * rhs, y * rhs };
-		}
-
-		bool operator==(const Offset& rhs) const noexcept
-		{
-			return x == rhs.x && y == rhs.y;
+			T len = Length();
+			T inv = target / len;
+			*this *= len == T{ 0 } ? T{ 1 } : inv;
 		}
 	};
 
+	using OffsetF = OffsetT<float>;
+	using Offset = OffsetT<int32_t>;
+	
 	struct Size final
 	{
 		int32_t width = 0;
