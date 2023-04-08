@@ -103,7 +103,7 @@ void Options::ApplyCfg(
 		auto upscaleMethod = toml_int_in(game, "filtering");
 		if (upscaleMethod.ok)
 		{
-			_upscaleMethod = (UpscaleMethod)upscaleMethod.u.i;
+			SetUpscaleMethod((UpscaleMethod)upscaleMethod.u.i);
 		}
 	}
 
@@ -165,6 +165,13 @@ void Options::ApplyCommandLine(
 	if (strstr(cmdLine, "-dxnotitlechange")) SetFlag(OptionsFlag::NoTitleChange, true);
 	if (strstr(cmdLine, "-dxnomop")) SetFlag(OptionsFlag::NoMotionPrediction, true);
 	if (strstr(cmdLine, "-dxnokeepaspectratio")) SetFlag(OptionsFlag::NoKeepAspectRatio, true);
+
+	char const* upscale = strstr(cmdLine, "-dxupscale=");
+	if (upscale)
+	{
+		SetUpscaleMethod(static_cast<UpscaleMethod>(
+			static_cast<unsigned int>(upscale[11]) - static_cast<unsigned int>('0')));
+	}
 
 	if (strstr(cmdLine, "-dxscale3")) SetWindowScale(3);
 	else if (strstr(cmdLine, "-dxscale2")) SetWindowScale(2);
@@ -228,4 +235,13 @@ void Options::SetUserSpecifiedGameSize(
 UpscaleMethod Options::GetUpscaleMethod() const
 {
 	return _upscaleMethod;
+}
+
+void Options::SetUpscaleMethod(
+	_In_ UpscaleMethod upscale) noexcept
+{
+	if (upscale < UpscaleMethod::Count)
+	{
+		_upscaleMethod = upscale;
+	}
 }

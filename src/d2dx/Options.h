@@ -88,6 +88,9 @@ namespace d2dx
 
 		UpscaleMethod GetUpscaleMethod() const;
 
+		void SetUpscaleMethod(
+			_In_ UpscaleMethod upscaleMethod) noexcept;
+
 	private:
 		uint32_t _flags = 0;
 		int32_t _windowScale = 1;
