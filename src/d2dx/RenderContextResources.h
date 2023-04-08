@@ -46,8 +46,9 @@ namespace d2dx
 		DisplayNonintegerScale = 4,
 		DisplayBilinearScale = 5,
 		DisplayCatmullRomScale = 6,
-		ResolveAA = 7,
-		Count = 8
+		DisplayNearestScale = 7,
+		ResolveAA = 8,
+		Count = 9
 	};
 
 	enum class RenderContextTexture1D

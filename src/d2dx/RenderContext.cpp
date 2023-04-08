@@ -397,18 +397,21 @@ void RenderContext::Present()
 
 	if (needsUpscale)
 	{
-		switch (_d2dxContext->GetOptions().GetFiltering())
+		switch (_d2dxContext->GetOptions().GetUpscaleMethod())
 		{
 		default:
-		case FilteringOption::HighQuality:
+		case UpscaleMethod::HighQuality:
 			pixelShader = IsIntegerScale() ?
 				RenderContextPixelShader::DisplayIntegerScale :
 				RenderContextPixelShader::DisplayNonintegerScale;
 			break;
-		case FilteringOption::Bilinear:
+		case UpscaleMethod::Bilinear:
 			pixelShader = RenderContextPixelShader::DisplayBilinearScale;
 			break;
-		case FilteringOption::CatmullRom:
+		case UpscaleMethod::CatmullRom:
+			pixelShader = RenderContextPixelShader::DisplayCatmullRomScale;
+			break;
+		case UpscaleMethod::Nearest:
 			pixelShader = RenderContextPixelShader::DisplayCatmullRomScale;
 			break;
 		}

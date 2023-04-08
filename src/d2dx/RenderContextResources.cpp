@@ -26,6 +26,7 @@
 #include "DisplayIntegerScalePS_cso.h"
 #include "DisplayBilinearScalePS_cso.h"
 #include "DisplayCatmullRomScalePS_cso.h"
+#include "DisplayNearestScalePS_cso.h"
 #include "GamePS_cso.h"
 #include "GameVS_cso.h"
 #include "VideoPS_cso.h"
@@ -124,6 +125,9 @@ void RenderContextResources::CreateShadersAndInputLayout(
 
 	D2DX_CHECK_HR(
 		device->CreatePixelShader(DisplayCatmullRomScalePS_cso, ARRAYSIZE(DisplayCatmullRomScalePS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::DisplayCatmullRomScale]));
+
+	D2DX_CHECK_HR(
+		device->CreatePixelShader(DisplayNearestScalePS_cso, ARRAYSIZE(DisplayNearestScalePS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::DisplayNearestScale]));
 
 	D2DX_CHECK_HR(
 		device->CreatePixelShader(GammaPS_cso, ARRAYSIZE(GammaPS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::Gamma]));
