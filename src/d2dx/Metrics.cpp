@@ -211,20 +211,20 @@ Rect d2dx::Metrics::GetRenderRect(
 	   rescale the image with a non-integer factor. */
 	if (rect.offset.x < 0 || rect.offset.y < 0 || (rect.offset.x >= 16 && rect.offset.y >= 16))
 	{
-		float scaleFactorF = (float)desktopSize.width / rect.size.width;
-		int32_t scaledHeight = (int32_t)(rect.size.height * scaleFactorF);
+		float scaleFactorF = (float)desktopSize.width / gameSize.width;
+		int32_t scaledHeight = (int32_t)(gameSize.height * scaleFactorF);
 		rect.offset.x = 0;
 		rect.offset.y = (desktopSize.height - scaledHeight) / 2;
 		rect.size.width = desktopSize.width;
-		rect.size.height = scaledHeight;
+		rect.size.height = min(scaledHeight, desktopSize.height);
 
 		if (rect.offset.x < 0 || rect.offset.y < 0)
 		{
-			float scaleFactorF = (float)desktopSize.height / rect.size.height;
-			int32_t scaledWidth = (int32_t)(rect.size.width * scaleFactorF);
+			float scaleFactorF = (float)desktopSize.height / gameSize.height;
+			int32_t scaledWidth = (int32_t)(gameSize.width * scaleFactorF);
 			rect.offset.x = (desktopSize.width - scaledWidth) / 2;
 			rect.offset.y = 0;
-			rect.size.width = scaledWidth;
+			rect.size.width = min(scaledWidth, desktopSize.width);
 			rect.size.height = desktopSize.height;
 		}
 	}
