@@ -164,6 +164,8 @@ namespace d2dx
 
 		void SetBlendState(
 			_In_ ID3D11BlendState* blendState);
+		
+		bool NeedsPostRenderUpscale() const noexcept;
 
 		struct Constants final
 		{
