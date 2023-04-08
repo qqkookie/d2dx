@@ -268,10 +268,13 @@ RenderContext::RenderContext(
 	_gameSize = { 0, 0 };
 	SetSizes(_gameSize, _windowSize, _screenMode);
 
+	Size framebufferSize = _d2dxContext->GetOptions().GetUpscaleMethod() == UpscaleMethod::Rasterize
+		? _renderRect.size
+		: gameSize;
 	_resources = std::make_unique<RenderContextResources>(
 			_vbCapacity * sizeof(Vertex),
 			16 * sizeof(Constants),
-			gameSize,
+		framebufferSize,
 			_device.Get(),
 			simd);
 
@@ -880,23 +883,38 @@ void RenderContext::SetSizes(
 		return;
 	}
 
-	if (_resources && gameSize != _gameSize) {
-		_resources->SetFramebufferSize(gameSize, _device.Get());
-		SetRenderTargets(
-			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
-			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
-	}
-
+	bool updateGameSize = gameSize != _gameSize;
 	_gameSize = gameSize;
 	_windowSize = windowSize;
 	_screenMode = screenMode;
 
 	auto displaySize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
-
-	_renderRect = Metrics::GetRenderRect(
+	Rect renderRect = Metrics::GetRenderRect(
 		_gameSize,
 		displaySize,
 		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
+	bool updateRenderSize = renderRect.size != _renderRect.size;
+	_renderRect = renderRect;
+
+	if (_resources)
+	{
+		if (_d2dxContext->GetOptions().GetUpscaleMethod() == UpscaleMethod::Rasterize)
+		{
+			if (updateRenderSize) {
+				_resources->SetFramebufferSize(renderRect.size, _device.Get());
+				SetRenderTargets(
+					_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+					_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+			}
+		}
+		else if (updateGameSize)
+		{
+			_resources->SetFramebufferSize(gameSize, _device.Get());
+			SetRenderTargets(
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+		}
+	}
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
@@ -1107,5 +1125,7 @@ ScreenMode RenderContext::GetScreenMode() const
 
 bool RenderContext::NeedsPostRenderUpscale() const noexcept
 {
-	return _gameSize != _renderRect.size;
+	return _d2dxContext->GetOptions().GetUpscaleMethod() == UpscaleMethod::Rasterize ?
+		false :
+		_gameSize != _renderRect.size;
 }

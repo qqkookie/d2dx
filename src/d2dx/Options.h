@@ -49,7 +49,8 @@ namespace d2dx
 		Bilinear = 1,
 		CatmullRom = 2,
 		Nearest = 3,
-		Count = 4
+		Rasterize = 4,
+		Count = 5
 	};
 
 	class Options final
