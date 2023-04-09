@@ -147,62 +147,35 @@ BuiltinResMod::BuiltinResMod(
         D2DX_CHECK_HR(E_INVALIDARG);
     }
 
-    _isActive = false;
-
-#ifndef D2DX_UNITTEST
-    if (IsCompatible(gameHelper.get()))
-    {
 #ifdef D2DX_RES_MOD
-        D2DX_LOG("Writing SGD2FreeRes files.");
+    D2DX_LOG("Writing SGD2FreeRes files.");
 
-        if (!WriteResourceToFile(hModule, IDR_SGD2FR_MPQ, "mpq", "d2dx_sgd2freeres.mpq"))
-        {
-            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
-        }
-
-        if (!WriteResourceToFile(hModule, IDR_SGD2FR_DLL, "dll", "d2dx_sgd2freeres.dll"))
-        {
-            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
-        }
-
-        if (!WriteConfig(gameSize))
-        {
-            D2DX_LOG("Failed to write SGD2FreeRes configuration.");
-        }
-
-        D2DX_LOG("Initializing SGD2FreeRes.");
-        LoadLibraryA("d2dx_sgd2freeres.dll");
-#else
-        D2DX_LOG("Initializing SGD2FreeRes.");
-        LoadLibraryA("SGD2FreeRes.dll");
-#endif
-        _isActive = true;
-        return;
-    }
-#endif
-}
-
-bool BuiltinResMod::IsActive() const
-{
-    return _isActive;
-}
-
-_Use_decl_annotations_
-bool BuiltinResMod::IsCompatible(
-    IGameHelper* gameHelper)
-{
-    auto gameVersion = gameHelper->GetVersion();
-
-    if (gameVersion != d2dx::GameVersion::Lod109d &&
-        gameVersion != d2dx::GameVersion::Lod110f &&
-        gameVersion != d2dx::GameVersion::Lod112 &&
-        gameVersion != d2dx::GameVersion::Lod113c &&
-        gameVersion != d2dx::GameVersion::Lod113d &&
-        gameVersion != d2dx::GameVersion::Lod114d)
+    if (!WriteResourceToFile(hModule, IDR_SGD2FR_MPQ, "mpq", "d2dx_sgd2freeres.mpq"))
     {
-        D2DX_LOG("Unsupported game version, won't use built-in resolution mod.");
-        return false;
+        D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+        D2DX_CHECK_HR(E_UNEXPECTED);
     }
 
-    return true;
+    if (!WriteResourceToFile(hModule, IDR_SGD2FR_DLL, "dll", "d2dx_sgd2freeres.dll"))
+    {
+        D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+        D2DX_CHECK_HR(E_UNEXPECTED);
+    }
+
+    if (!WriteConfig(gameSize))
+    {
+        D2DX_LOG("Failed to write SGD2FreeRes configuration.");
+        D2DX_CHECK_HR(E_UNEXPECTED);
+    }
+
+    D2DX_LOG("Initializing SGD2FreeRes.");
+    if (!LoadLibraryW(L"d2dx_sgd2freeres.dll")) {
+        D2DX_CHECK_HR(E_UNEXPECTED);
+    }
+#else
+    D2DX_LOG("Initializing SGD2FreeRes.");
+    if (!LoadLibraryW(L"SGD2FreeRes.dll")) {
+        D2DX_CHECK_HR(E_UNEXPECTED);
+    }
+#endif
 }

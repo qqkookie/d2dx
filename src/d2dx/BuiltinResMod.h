@@ -32,13 +32,5 @@ namespace d2dx
             _In_ const std::shared_ptr<IGameHelper>& gameHelper);
         
         virtual ~BuiltinResMod() noexcept {}
-
-        virtual bool IsActive() const override;
-
-    private:
-        bool IsCompatible(
-            _In_ IGameHelper* gameHelper);
-
-        bool _isActive = false;
     };
 }

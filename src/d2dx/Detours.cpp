@@ -762,7 +762,9 @@ void d2dx::AttachLateDetours(
 		!D2Gfx_DrawShadow_Real ||
 		!D2Win_DrawText_Real ||
 		!D2Win_DrawFramedText_Real ||
-		!D2Client_DrawUnit_Real)
+		!D2Win_DrawRectangledText_Real ||
+		!D2Client_DrawUnit_Real ||
+		!D2Client_DrawWeatherParticles_Real)
 	{
 		return;
 	}
@@ -779,16 +781,11 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
+	DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 	//DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
 
-	if (D2Win_DrawRectangledText_Real)
+	if (!d2dxContext->GetOptions().GetFlag(OptionsFlag::NoMotionPrediction))
 	{
-		DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
-	}
-
-	if (d2dxContext->IsFeatureEnabled(Feature::UnitMotionPrediction))
-	{
-		assert(D2Client_DrawUnit_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawUnit_Real,
 			(gameHelper->GetVersion() == GameVersion::Lod109d ||
 			 gameHelper->GetVersion() == GameVersion::Lod110f ||
@@ -799,11 +796,7 @@ void d2dx::AttachLateDetours(
 			assert(D2Client_DrawMissile_Real);
 			DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 		}
-	}
 
-	if (d2dxContext->IsFeatureEnabled(Feature::WeatherMotionPrediction))
-	{
-		assert(D2Client_DrawWeatherParticles_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real,
 			gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawWeatherParticles114d_Hooked : D2Client_DrawWeatherParticles_Hooked);
 	}
@@ -816,7 +809,10 @@ void d2dx::AttachLateDetours(
 	}
 }
 
-void d2dx::DetachLateDetours()
+_Use_decl_annotations_
+void d2dx::DetachLateDetours(
+	IGameHelper* gameHelper,
+	ID2DXContext* d2dxContext)
 {
 	if (!hasLateDetoured || hasDetachedLateDetours)
 	{
@@ -837,9 +833,24 @@ void d2dx::DetachLateDetours()
 	DetourDetach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 	DetourDetach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
 	DetourDetach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
-	DetourDetach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 	DetourDetach(&(PVOID&)Sleep_Real, Sleep_Hooked);
 	DetourDetach(&(PVOID&)SleepEx_Real, SleepEx_Hooked);
+
+	if (!d2dxContext->GetOptions().GetFlag(OptionsFlag::NoMotionPrediction))
+	{
+		DetourDetach(&(PVOID&)D2Client_DrawUnit_Real,
+			(gameHelper->GetVersion() == GameVersion::Lod109d ||
+			gameHelper->GetVersion() == GameVersion::Lod110f ||
+			gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
+
+		if (gameHelper->GetVersion() != GameVersion::Lod109d && gameHelper->GetVersion() != GameVersion::Lod110f)
+		{
+			DetourDetach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
+		}
+
+		DetourDetach(&(PVOID&)D2Client_DrawWeatherParticles_Real,
+			gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawWeatherParticles114d_Hooked : D2Client_DrawWeatherParticles_Hooked);
+	}
 
 	LONG lError = DetourTransactionCommit();
 
