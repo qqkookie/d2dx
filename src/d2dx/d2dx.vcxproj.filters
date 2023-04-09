@@ -71,6 +71,7 @@
     <ClCompile Include="..\..\thirdparty\xxhash\xxhash.c">
       <Filter>thirdparty\xxhash</Filter>
     </ClCompile>
+    <ClCompile Include="Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\..\thirdparty\xxhash\xxhash.h">
       <Filter>thirdparty\xxhash</Filter>
     </ClInclude>
+    <ClInclude Include="Profiler.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

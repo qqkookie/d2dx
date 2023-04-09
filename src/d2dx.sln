@@ -10,18 +10,23 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
+		Release (Profile)|x86 = Release (Profile)|x86
 		Release (ResMod)|x86 = Release (ResMod)|x86
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Debug|x86.ActiveCfg = Debug|Win32
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Debug|x86.Build.0 = Debug|Win32
+		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release (Profile)|x86.ActiveCfg = Release (Profile)|Win32
+		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release (Profile)|x86.Build.0 = Release (Profile)|Win32
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release (ResMod)|x86.ActiveCfg = Release (ResMod)|Win32
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release (ResMod)|x86.Build.0 = Release (ResMod)|Win32
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release|x86.ActiveCfg = Release|Win32
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release|x86.Build.0 = Release|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Debug|x86.ActiveCfg = Debug|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Debug|x86.Build.0 = Debug|Win32
+		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release (Profile)|x86.ActiveCfg = Release (Profile)|Win32
+		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release (Profile)|x86.Build.0 = Release (Profile)|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release (ResMod)|x86.ActiveCfg = Release (ResMod)|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release (ResMod)|x86.Build.0 = Release (ResMod)|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release|x86.ActiveCfg = Release|Win32

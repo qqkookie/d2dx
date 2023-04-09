@@ -20,13 +20,12 @@
 #include "TextureHasher.h"
 #include "Types.h"
 #include "Utils.h"
+#include "Profiler.h"
 
 using namespace d2dx;
 
 TextureHasher::TextureHasher() :
-	_cache{ D2DX_TMU_MEMORY_SIZE / 256, true },
-	_cacheHits{ 0 },
-	_cacheMisses{ 0 }
+	_cache{ D2DX_TMU_MEMORY_SIZE / 256, true }
 {
 }
 
@@ -48,14 +47,11 @@ XXH64_hash_t TextureHasher::GetHash(
 	assert((startAddress & 255) == 0);
 
 	XXH64_hash_t hash = _cache.items[startAddress >> 8];
+	AddTexHashLookup();
 
-	if (hash)
+	if (!hash)
 	{
-		++_cacheHits;
-	}
-	else
-	{
-		++_cacheMisses;
+		AddTexHashMiss(pixelsSize);
 		hash = XXH3_64bits((void *)pixels, pixelsSize);
 		hash ^= static_cast<XXH64_hash_t>(largeLog2 * 0x01000193u);
 		hash ^= static_cast<XXH64_hash_t>(ratioLog2 * 0x01000193u) << 32;
@@ -63,13 +59,4 @@ XXH64_hash_t TextureHasher::GetHash(
 	}
 
 	return hash;
-}
-
-void TextureHasher::PrintStats()
-{
-	D2DX_DEBUG_LOG("Texture hash cache hits: %u (%i%%) misses %u",
-		_cacheHits,
-		(int32_t)(100.0f * (float)_cacheHits / (_cacheHits + _cacheMisses)),
-		_cacheMisses
-	);
 }

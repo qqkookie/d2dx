@@ -24,6 +24,7 @@
 #include "TextureCache.h"
 #include "Vertex.h"
 #include "Utils.h"
+#include "Profiler.h"
 
 #define MAX_FRAME_LATENCY 1
 #undef ALLOW_SET_SOURCE_SIZE
@@ -59,7 +60,7 @@ RenderContext::RenderContext(
 
 	_screenMode = initialScreenMode;
 
-	_timeStart = TimeStart();
+	_prevTimeStamp = TimeStamp();
 
 	_hWnd = hWnd;
 	_d2dxContext = d2dxContext;
@@ -457,10 +458,9 @@ void RenderContext::Present()
 		nullptr,
 		nullptr);
 
-#ifndef NDEBUG
 	if (!(_frameCount & 255))
 	{
-		D2DX_LOG("Texture cache use: %u, %u, %u, %u, %u, %u, %u",
+		D2DX_DEBUG_LOG("Texture cache use: %u, %u, %u, %u, %u, %u, %u",
 			this->_resources->GetTextureCache(8, 8)->GetUsedCount(),
 			this->_resources->GetTextureCache(16, 16)->GetUsedCount(),
 			this->_resources->GetTextureCache(32, 32)->GetUsedCount(),
@@ -469,28 +469,33 @@ void RenderContext::Present()
 			this->_resources->GetTextureCache(256, 256)->GetUsedCount(),
 			this->_resources->GetTextureCache(256, 128)->GetUsedCount());
 	}
-#endif
 
-	switch (_syncStrategy)
 	{
-	case RenderContextSyncStrategy::AllowTearing:
-		D2DX_CHECK_HR(_swapChain1->Present(0, DXGI_PRESENT_ALLOW_TEARING));
-		break;
-	case RenderContextSyncStrategy::Interval0:
-		D2DX_CHECK_HR(_swapChain1->Present(0, 0));
-		break;
-	case RenderContextSyncStrategy::FrameLatencyWaitableObject:
-		D2DX_CHECK_HR(_swapChain1->Present(0, 0));
-		::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
-		break;
-	case RenderContextSyncStrategy::Interval1:
-		D2DX_CHECK_HR(_swapChain1->Present(1, 0));
-		break;
+		HaltSleepProfile _halt;
+		Timer _timer(ProfCategory::Present);
+		switch (_syncStrategy)
+		{
+		case RenderContextSyncStrategy::AllowTearing:
+			D2DX_CHECK_HR(_swapChain1->Present(0, DXGI_PRESENT_ALLOW_TEARING));
+			break;
+		case RenderContextSyncStrategy::Interval0:
+			D2DX_CHECK_HR(_swapChain1->Present(0, 0));
+			break;
+		case RenderContextSyncStrategy::FrameLatencyWaitableObject:
+			D2DX_CHECK_HR(_swapChain1->Present(0, 0));
+			::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
+			break;
+		case RenderContextSyncStrategy::Interval1:
+			D2DX_CHECK_HR(_swapChain1->Present(1, 0));
+			break;
+		}
 	}
 
-	auto curTime = TimeEnd(_timeStart);
-	_frameTimeMs = TimeToMs(curTime - _prevTime);
-	_prevTime = curTime;
+	WriteProfile();
+
+	auto curTimeStamp = TimeStamp();
+	_frameTimeMs = TimeToMs(curTimeStamp - _prevTimeStamp);
+	_prevTimeStamp = curTimeStamp;
 
 	if (_deviceContext1)
 	{

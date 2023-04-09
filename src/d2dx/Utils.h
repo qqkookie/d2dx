@@ -21,6 +21,25 @@
 #include "ErrorHandling.h"
 #include "Buffer.h"
 
+#define D2DX_LOG(fmt, ...) \
+	{ \
+		static char ssss[1024]; \
+		sprintf_s(ssss, fmt "\n", __VA_ARGS__); \
+		d2dx::detail::Log(ssss); \
+	}
+
+#ifdef NDEBUG
+#define D2DX_DEBUG_LOG(fmt, ...)
+#else
+#define D2DX_DEBUG_LOG(fmt, ...) D2DX_LOG(fmt, __VA_ARGS__)
+#endif
+
+#ifdef D2DX_PROFILE
+#define D2DX_LOG_PROFILE(fmt, ...) D2DX_LOG(fmt, __VA_ARGS__)
+#else
+#define D2DX_LOG_PROFILE(fmt, ...)
+#endif
+
 namespace d2dx
 {
 	namespace detail
@@ -28,28 +47,8 @@ namespace d2dx
 		__declspec(noinline) void Log(_In_z_ const char* s);
 	}
 
-	int64_t TimeStart();
-	int64_t TimeEnd(int64_t start);
-	double TimeToMs(int64_t time);
-
-
-#ifdef NDEBUG
-#define D2DX_DEBUG_LOG(fmt, ...)
-#else
-#define D2DX_DEBUG_LOG(fmt, ...) \
-	{ \
-		static char ss[256]; \
-		sprintf_s(ss, fmt "\n", __VA_ARGS__); \
-		d2dx::detail::Log(ss); \
-	}
-#endif
-
-#define D2DX_LOG(fmt, ...) \
-	{ \
-		static char ssss[256]; \
-		sprintf_s(ssss, fmt "\n", __VA_ARGS__); \
-		d2dx::detail::Log(ssss); \
-	}
+	int64_t TimeStamp() noexcept;
+	double TimeToMs(int64_t time) noexcept;
 
 	struct WindowsVersion 
 	{

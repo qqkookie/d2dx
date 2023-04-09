@@ -18,6 +18,7 @@
 */
 #include "pch.h"
 #include "Utils.h"
+#include "Profiler.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "../../thirdparty/stb_image/stb_image_write.h"
@@ -29,39 +30,32 @@
 
 using namespace d2dx;
 
-static bool _hasSetFreq = false;
-static double _freq = 0.0;
-
-static void warmup()
+namespace
 {
-    if (_hasSetFreq)
-        return;
+    static int64_t query_frequency() noexcept
+    {
+        LARGE_INTEGER li;
+        QueryPerformanceFrequency(&li);
+        return li.QuadPart;
+    }
 
-    LARGE_INTEGER li;
-    QueryPerformanceFrequency(&li);
-    _freq = double(li.QuadPart) / 1000.0;
-    _hasSetFreq = true;
+    static double inv_frequency() noexcept
+    {
+        static double _freq = 1. / (static_cast<double>(query_frequency()) / 1000.);
+        return _freq;
+    }
 }
 
-int64_t d2dx::TimeStart()
+int64_t d2dx::TimeStamp() noexcept
 {
-    warmup();
     LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
     return (int64_t)li.QuadPart;
 }
 
-int64_t d2dx::TimeEnd(int64_t sinceThisTime)
+double d2dx::TimeToMs(int64_t time) noexcept
 {
-    LARGE_INTEGER li;
-    QueryPerformanceCounter(&li);
-    return li.QuadPart - sinceThisTime;
-}
-
-double d2dx::TimeToMs(int64_t time)
-{
-    assert(_freq);
-    return static_cast<double>(time) / _freq;
+    return static_cast<double>(time) * inv_frequency();
 }
 
 #define STATUS_SUCCESS (0x00000000)
@@ -134,6 +128,7 @@ static void EnsureLogFileOpened()
 
 static DWORD WINAPI WriteToLogFileWorkItemFunc(PVOID pvContext)
 {
+    HaltSleepProfile _halt;
     char* s = (char*)pvContext;
 
     OutputDebugStringA(s);
@@ -157,6 +152,7 @@ _Use_decl_annotations_
 void d2dx::detail::Log(
     const char* s)
 {
+    HaltSleepProfile _halt;
     EnsureLogFileOpened();
     QueueUserWorkItem(WriteToLogFileWorkItemFunc, _strdup(s), WT_EXECUTEDEFAULT);
 }

@@ -22,6 +22,7 @@
 #include "D2DXContextFactory.h"
 #include "IWin32InterceptionHandler.h"
 #include "IGameHelper.h"
+#include "Profiler.h"
 
 using namespace d2dx;
 
@@ -53,37 +54,7 @@ static ID2InterceptionHandler* GetD2InterceptionHandler()
 	return D2DXContextFactory::GetInstance(false);
 }
 
-static thread_local bool isInSleepCall = false;
-
-static VOID
-(WINAPI*
-Sleep_Real)(
-	_In_ DWORD dwMilliseconds
-) = Sleep;
-
-static VOID WINAPI Sleep_Hooked(
-	_In_ DWORD dwMilliseconds)
-{
-	auto win32InterceptionHandler = GetWin32InterceptionHandler();
-	if (win32InterceptionHandler)
-	{
-		int32_t adjustedMs = win32InterceptionHandler->OnSleep((int32_t)dwMilliseconds);
-
-		if (adjustedMs >= 0)
-		{
-			isInSleepCall = true;
-			Sleep_Real((DWORD)adjustedMs);
-			isInSleepCall = false;
-		}
-	}
-	else
-	{
-		isInSleepCall = true;
-		Sleep_Real(dwMilliseconds);
-		isInSleepCall = false;
-	}
-}
-
+#ifdef D2DX_PROFILE
 static DWORD
 (WINAPI*
 	SleepEx_Real)(
@@ -95,28 +66,10 @@ static DWORD WINAPI SleepEx_Hooked(
 	_In_ DWORD dwMilliseconds,
 	_In_ BOOL bAlertable)
 {
-	if (isInSleepCall)
-	{
-		return SleepEx_Real(dwMilliseconds, bAlertable);
-	}
-
-	auto win32InterceptionHandler = GetWin32InterceptionHandler();
-	if (win32InterceptionHandler)
-	{
-		int32_t adjustedMs = win32InterceptionHandler->OnSleep((int32_t)dwMilliseconds);
-
-		if (adjustedMs >= 0)
-		{
-			return SleepEx_Real((DWORD)adjustedMs, bAlertable);
-		}
-	}
-	else
-	{
-		return SleepEx_Real(dwMilliseconds, bAlertable);
-	}
-
-	return 0;
+	Timer _timer(ProfCategory::Sleep);
+	return SleepEx_Real(dwMilliseconds, bAlertable);
 }
+#endif
 
 COLORREF(WINAPI* GetPixel_real)(
 	_In_ HDC hdc,
@@ -176,6 +129,7 @@ SetCursorPos_Hooked(
 	_In_ int X,
 	_In_ int Y)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto win32InterceptionHandler = GetWin32InterceptionHandler();
 
 	if (!win32InterceptionHandler)
@@ -209,6 +163,7 @@ SendMessageA_Hooked(
 	_Pre_maybenull_ _Post_valid_ WPARAM wParam,
 	_Pre_maybenull_ _Post_valid_ LPARAM lParam)
 {
+	Timer _timer(ProfCategory::Detours);
 	if (Msg == WM_MOUSEMOVE)
 	{
 		auto win32InterceptionHandler = GetWin32InterceptionHandler();
@@ -300,6 +255,7 @@ void __stdcall D2Gfx_DrawImage_Hooked(
 	int nDrawMode,
 	BYTE * pPalette)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
@@ -320,6 +276,7 @@ void __stdcall D2Gfx_DrawClippedImage_Hooked(
 	void* pCropRect,
 	int nDrawMode)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
@@ -341,6 +298,7 @@ void __stdcall D2Gfx_DrawShiftedImage_Hooked(
 	int nDrawMode,
 	int nGlobalPaletteShift)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
@@ -362,6 +320,7 @@ void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
 	int nDrawLines,
 	int nDrawMode)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
@@ -381,6 +340,7 @@ void __stdcall D2Gfx_DrawImageFast_Hooked(
 	int nYpos,
 	BYTE nPaletteIndex)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
@@ -399,6 +359,7 @@ void __stdcall D2Gfx_DrawShadow_Hooked(
 	int nXpos,
 	int nYpos)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
 	if (d2InterceptionHandler)
@@ -420,6 +381,7 @@ void __fastcall D2Win_DrawText_Hooked(
 	DWORD dwColor,
 	DWORD centered)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
@@ -463,6 +425,7 @@ void __fastcall D2Win_DrawFramedText_Hooked(
 	DWORD dwColor,
 	DWORD centered)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
@@ -484,6 +447,7 @@ void __fastcall D2Win_DrawRectangledText_Hooked(
 	DWORD rectTransparency,
 	DWORD color)
 {
+	Timer _timer(ProfCategory::Detours);
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
@@ -771,8 +735,9 @@ void d2dx::AttachLateDetours(
 
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)Sleep_Real, Sleep_Hooked);
+#ifdef D2DX_PROFILE
 	DetourAttach(&(PVOID&)SleepEx_Real, SleepEx_Hooked);
+#endif
 	DetourAttach(&(PVOID&)D2Gfx_DrawImage_Real, D2Gfx_DrawImage_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawShiftedImage_Real, D2Gfx_DrawShiftedImage_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawVerticalCropImage_Real, D2Gfx_DrawVerticalCropImage_Hooked);
@@ -833,8 +798,9 @@ void d2dx::DetachLateDetours(
 	DetourDetach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 	DetourDetach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
 	DetourDetach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
-	DetourDetach(&(PVOID&)Sleep_Real, Sleep_Hooked);
+#ifdef D2DX_PROFILE
 	DetourDetach(&(PVOID&)SleepEx_Real, SleepEx_Hooked);
+#endif
 
 	if (!d2dxContext->GetOptions().GetFlag(OptionsFlag::NoMotionPrediction))
 	{

@@ -38,11 +38,7 @@ namespace d2dx
 			_In_ uint32_t largeLog2,
 			_In_ uint32_t ratioLog2);
 
-		void PrintStats();
-
 	private:
 		Buffer<XXH64_hash_t> _cache;
-        uint32_t _cacheHits;
-		uint32_t _cacheMisses;
 	};
 }

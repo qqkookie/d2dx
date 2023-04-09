@@ -26,6 +26,7 @@
 #define XXH_NO_STREAM 1
 
 #include <array>
+#include <atomic>
 #include <stdexcept>
 #include <cstdio>
 #include <cstdint>

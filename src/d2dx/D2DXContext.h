@@ -157,6 +157,7 @@ namespace d2dx
 		virtual void OnTexFilterMode(
 			_In_ GrChipID_t tmu,
 			_In_ GrTextureFilterMode_t filterMode);
+
 #pragma endregion IGlide3x
 
 #pragma region ID2DXContext
@@ -172,6 +173,16 @@ namespace d2dx
 
 		virtual const Options& GetOptions() const override;
 
+		virtual uint32_t GetActiveThreadId() const noexcept override
+		{
+			return _threadId;
+		}
+
+		virtual bool InGame() const noexcept override
+		{
+			return _majorGameState == MajorGameState::InGame;
+		}
+
 #pragma endregion ID2DXContext
 
 #pragma region IWin32InterceptionHandler
@@ -181,9 +192,6 @@ namespace d2dx
 
 		virtual Offset OnMouseMoveMessage(
 			_In_ Offset pos) override;
-
-		virtual int32_t OnSleep(
-			_In_ int32_t ms) override;
 
 #pragma endregion IWin32InterceptionHandler
 
@@ -289,8 +297,6 @@ namespace d2dx
 
 		OffsetF _avgDir = { 0.0f, 0.0f };
 
-		bool _skipCountingSleep = false;
-		int32_t _sleeps = 0;
 		uint32_t _threadId = 0;
 	};
 }

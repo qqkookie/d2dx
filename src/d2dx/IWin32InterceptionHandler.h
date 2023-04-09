@@ -31,8 +31,5 @@ namespace d2dx
 
 		virtual Offset OnMouseMoveMessage(
 			_In_ Offset pos) = 0;
-
-		virtual int32_t OnSleep(
-			_In_ int32_t ms) = 0;
 	};
 }

@@ -18,6 +18,7 @@
 */
 #include "pch.h"
 #include "D2DXContext.h"
+#include "D2DXContextFactory.h"
 #include "Detours.h"
 #include "BuiltinResMod.h"
 #include "RenderContext.h"
@@ -27,6 +28,7 @@
 #include "Utils.h"
 #include "Vertex.h"
 #include "dx256_bmp.h"
+#include "Profiler.h"
 
 using namespace d2dx;
 using namespace DirectX::PackedVector;
@@ -274,6 +276,7 @@ void D2DXContext::OnTexDownload(
 	int32_t width,
 	int32_t height)
 {
+	Timer _timer(ProfCategory::TextureDownload);
 	assert(tmu == 0 && (startAddress & 255) == 0);
 	if (!(tmu == 0 && (startAddress & 255) == 0))
 	{
@@ -299,6 +302,7 @@ void D2DXContext::OnTexSource(
 	uint32_t largeLog2,
 	uint32_t ratioLog2)
 {
+	Timer _timer(ProfCategory::TextureSource);
 	assert(tmu == 0 && (startAddress & 255) == 0);
 	if (!(tmu == 0 && (startAddress & 255) == 0))
 	{
@@ -445,6 +449,7 @@ void D2DXContext::OnBufferSwap()
 	if (!_options.GetFlag(OptionsFlag::NoMotionPrediction) &&
 		_majorGameState == MajorGameState::InGame)
 	{
+		Timer _timer(ProfCategory::MotionPrediction);
 		const Offset offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
 
 		for (uint32_t i = 0; i < _batchCount; ++i)
@@ -467,23 +472,15 @@ void D2DXContext::OnBufferSwap()
 		}
 	}
 
-	auto startVertexLocation = _renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
+	{
+		Timer _timer(ProfCategory::DrawBatches);
+		auto startVertexLocation = _renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
+		DrawBatches(startVertexLocation);
+	}
 
-	DrawBatches(startVertexLocation);
-
-	_skipCountingSleep = true;
 	_renderContext->Present();
-	_skipCountingSleep = false;
 
 	++_frame;
-
-	if (!(_frame & 255))
-	{
-		_textureHasher.PrintStats();
-
-		D2DX_DEBUG_LOG("Sleeps/frame: %.2f", _sleeps / 256.0f);
-		_sleeps = 0;
-	}
 
 	_batchCount = 0;
 	_vertexCount = 0;
@@ -591,6 +588,7 @@ void D2DXContext::OnDrawPoint(
 	const void* pt,
 	uint32_t gameContext)
 {
+	Timer _timer(ProfCategory::Draw);
 	Batch batch = _scratchBatch;
 	batch.SetGameAddress(GameAddress::Unknown);
 	batch.SetStartVertex(_vertexCount);
@@ -635,6 +633,7 @@ void D2DXContext::OnDrawLine(
 	const void* v2,
 	uint32_t gameContext)
 {
+	Timer _timer(ProfCategory::Draw);
 	Batch batch = _scratchBatch;
 	batch.SetGameAddress(GameAddress::DrawLine);
 	batch.SetStartVertex(_vertexCount);
@@ -658,6 +657,8 @@ void D2DXContext::OnDrawLine(
 	if (!_options.GetFlag(OptionsFlag::NoMotionPrediction) &&
 		currentlyDrawingWeatherParticles)
 	{
+		Timer _timer2(ProfCategory::MotionPrediction);
+
 		uint32_t currentWeatherParticleIndex = *currentlyDrawingWeatherParticleIndexPtr;
 		const int32_t act = _gameHelper->GetCurrentAct();
 
@@ -829,6 +830,7 @@ void D2DXContext::OnDrawVertexArray(
 	uint8_t** pointers,
 	uint32_t gameContext)
 {
+	Timer _timer(ProfCategory::Draw);
 	assert(mode == GR_TRIANGLE_STRIP || mode == GR_TRIANGLE_FAN);
 
 	if (count < 3 || (mode != GR_TRIANGLE_STRIP && mode != GR_TRIANGLE_FAN))
@@ -906,6 +908,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	uint32_t stride,
 	uint32_t gameContext)
 {
+	Timer _timer(ProfCategory::Draw);
 	assert(count == 4);
 	assert(mode == GR_TRIANGLE_FAN);
 	assert(stride == sizeof(D2::Vertex));
@@ -957,6 +960,7 @@ void D2DXContext::OnTexDownloadTable(
 	GrTexTable_t type,
 	void* data)
 {
+	Timer _timer(ProfCategory::TextureDownload);
 	if (type != GR_TEXTABLE_PALETTE)
 	{
 		assert(false && "Unhandled table type.");
@@ -1026,6 +1030,7 @@ void D2DXContext::OnLoadGammaTable(
 	uint32_t* green,
 	uint32_t* blue)
 {
+	Timer _timer(ProfCategory::TextureDownload);
 	for (int32_t i = 0; i < (int32_t)min(nentries, 256); ++i)
 	{
 		_glideState.gammaTable.items[i] = ((blue[i] & 0xFF) << 16) | ((green[i] & 0xFF) << 8) | (red[i] & 0xFF);
@@ -1049,6 +1054,7 @@ void D2DXContext::OnGammaCorrectionRGB(
 	float green,
 	float blue)
 {
+	Timer _timer(ProfCategory::TextureDownload);
 	uint32_t gammaTable[256];
 
 	for (int32_t i = 0; i < 256; ++i)
@@ -1113,6 +1119,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 
 void D2DXContext::InsertLogoOnTitleScreen()
 {
+	Timer _timer(ProfCategory::Draw);
 	if (_options.GetFlag(OptionsFlag::NoLogo) || _majorGameState != MajorGameState::TitleScreen || _batchCount <= 0)
 		return;
 
@@ -1215,25 +1222,6 @@ Offset D2DXContext::OnMouseMoveMessage(
 }
 
 _Use_decl_annotations_
-int32_t D2DXContext::OnSleep(
-	int32_t ms)
-{
-	if (_skipCountingSleep || _threadId != GetCurrentThreadId())
-	{
-		return ms;
-	}
-
-	++_sleeps;
-
-	if (_majorGameState == MajorGameState::InGame)
-	{
-		return ms;
-	}
-
-	return ms;
-}
-
-_Use_decl_annotations_
 void D2DXContext::SetCustomResolution(
 	Size size)
 {
@@ -1280,14 +1268,13 @@ const Options& D2DXContext::GetOptions() const
 
 void D2DXContext::OnBufferClear()
 {
-	if (_majorGameState == MajorGameState::InGame)
+	if (_majorGameState == MajorGameState::InGame &&
+		!_options.GetFlag(OptionsFlag::NoMotionPrediction))
 	{
-		if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
-		{
-			_unitMotionPredictor.Update(_renderContext.get());
-			_textMotionPredictor.Update(_renderContext.get());
-			_weatherMotionPredictor.Update(_renderContext.get());
-		}
+		Timer _timer(ProfCategory::MotionPrediction);
+		_unitMotionPredictor.Update(_renderContext.get());
+		_textMotionPredictor.Update(_renderContext.get());
+		_weatherMotionPredictor.Update(_renderContext.get());
 	}
 }
 
@@ -1310,6 +1297,7 @@ Offset D2DXContext::BeginDrawText(
 
 	if (d2Function != D2Function::D2Win_DrawText && !_options.GetFlag(OptionsFlag::NoMotionPrediction))
 	{
+		Timer _timer(ProfCategory::MotionPrediction);
 		auto hash = fnv_32a_buf((void*)str, wcslen(str), FNV1_32A_INIT);
 		offset = _textMotionPredictor.GetOffset(reinterpret_cast<uintptr_t>(str), hash, pos);
 	}
@@ -1350,17 +1338,22 @@ Offset D2DXContext::BeginDrawImage(
 
 	if (currentlyDrawingUnit)
 	{
-		_unitMotionPredictor.SetUnitScreenPos(currentlyDrawingUnit, pos.x, pos.y);
-
-		if (currentlyDrawingUnit == _gameHelper->GetPlayerUnit())
+		bool isPlayer = currentlyDrawingUnit == _gameHelper->GetPlayerUnit();
+		if (isPlayer)
 		{
 			// The player unit itself.
 			_scratchBatch.SetTextureCategory(TextureCategory::Player);
 			_playerScreenPos = pos;
 		}
-		else
+
+		if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
 		{
-			offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
+			Timer _timer(ProfCategory::MotionPrediction);
+			_unitMotionPredictor.SetUnitScreenPos(currentlyDrawingUnit, pos.x, pos.y);
+			if (!isPlayer)
+			{
+				offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
+			}
 		}
 	}
 	else
@@ -1375,8 +1368,9 @@ Offset D2DXContext::BeginDrawImage(
 			{
 				_scratchBatch.SetTextureCategory(TextureCategory::Player);
 			}
-			else
+			else if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
 			{
+				Timer _timer(ProfCategory::MotionPrediction);
 				offset = _unitMotionPredictor.GetOffsetForShadow(pos.x, pos.y);
 			}
 		}

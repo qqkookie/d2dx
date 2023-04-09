@@ -227,7 +227,7 @@ namespace d2dx
 		bool _isActiveWindow = false;
 		bool _isCursorClipped = false;
 
-		int64_t _prevTime;
+		int64_t _prevTimeStamp;
 		double _frameTimeMs;
 	};
 }
