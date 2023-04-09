@@ -471,11 +471,6 @@ GameVersion GameHelper::GetGameVersion()
 		version = GameVersion::Lod114d;
 	}
 
-	if (version == GameVersion::Unsupported)
-	{
-		MessageBoxA(NULL, "This version of Diablo II is not supported by D2DX. Please upgrade or downgrade to a supported version.", "D2DX", MB_OK);
-	}
-
 	D2DX_LOG("Game version: %d.%d.%d.%d (%s)\n", a, b, c, d, version == GameVersion::Unsupported ? "unsupported" : "supported");
 
 	return version;
