@@ -230,6 +230,9 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)glide3x.dll" "C:\Program Files\Diablo II\"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;D2DX_RES_MOD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\thirdparty\detours\detours.h" />
