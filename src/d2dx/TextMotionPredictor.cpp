@@ -22,6 +22,11 @@
 using namespace d2dx;
 using namespace DirectX;
 
+const float ROOT_TWO = 1.41421356237f;
+const OffsetF GAME_TO_SCREEN_POS = { 32.f / ROOT_TWO, 16.f / ROOT_TWO };
+const OffsetF TEXT_SEARCH_DIST = OffsetF(1.5f, 1.5f) * GAME_TO_SCREEN_POS;
+const float TEXT_MIN_DELTA_LEN = TEXT_SEARCH_DIST.Length() / 2.5f;
+
 _Use_decl_annotations_
 TextMotionPredictor::TextMotionPredictor(
 	const std::shared_ptr<IGameHelper>& gameHelper) :
@@ -45,7 +50,7 @@ void TextMotionPredictor::Update(
 	{
 		TextMotion& tm = _textMotions.items[i];
 
-		if (!tm.id)
+		if (!tm.textAddress)
 		{
 			expiredTextIndex = i;
 			continue;
@@ -53,7 +58,7 @@ void TextMotionPredictor::Update(
 
 		if (abs((int64_t)_frame - (int64_t)tm.lastUsedFrame) > 2)
 		{
-			tm.id = 0;
+			tm.textAddress = 0;
 			expiredTextIndex = i;
 			continue;
 		}
@@ -72,7 +77,7 @@ void TextMotionPredictor::Update(
 	// Gradually (one change per frame) compact the list.
 	if (_textsCount > 0)
 	{
-		if (!_textMotions.items[_textsCount - 1].id)
+		if (!_textMotions.items[_textsCount - 1].textAddress)
 		{
 			// The last entry is expired. Shrink the list.
 			_textMotions.items[_textsCount - 1] = { };
@@ -92,54 +97,84 @@ void TextMotionPredictor::Update(
 
 _Use_decl_annotations_
 Offset TextMotionPredictor::GetOffset(
-	uint64_t textId,
+	uintptr_t textAddress,
+	uint32_t textHash,
 	Offset posFromGame)
 {
-	OffsetF posFromGameF{ (float)posFromGame.x, (float)posFromGame.y };
+	OffsetF posFromGameF(posFromGame);
 	int32_t textIndex = -1;
+	int32_t possibleIndex = -1;
+	float possibleDelta = 100.f;
+	bool multiplePossible = false;
 
 	for (int32_t i = 0; i < _textsCount; ++i)
 	{
-		if (_textMotions.items[i].id == textId)
+		if (_textMotions.items[i].textHash == textHash)
 		{
-			bool resetCurrentPos = false;
+			if (_textMotions.items[i].textAddress == textAddress)
+			{
+				if ((_gameHelper->ScreenOpenMode() & 1) && posFromGameF.x >= _gameSize.width / 2 ||
+					(_gameHelper->ScreenOpenMode() & 2) && posFromGameF.x <= _gameSize.width / 2)
+				{
+					_textMotions.items[i].currentPos = posFromGameF;
+				}
+				else
+				{
+					Offset delta = _textMotions.items[i].gamePos - posFromGame;
+					if (std::abs(delta.x) > TEXT_SEARCH_DIST.x ||
+						std::abs(delta.y) > TEXT_SEARCH_DIST.y)
+					{
+						_textMotions.items[i].currentPos = posFromGameF;
+					}
+				}
 
-			if ((_gameHelper->ScreenOpenMode() & 1) && posFromGameF.x >= _gameSize.width / 2)
-			{
-				resetCurrentPos = true;
-			}
-			else if ((_gameHelper->ScreenOpenMode() & 2) && posFromGameF.x <= _gameSize.width / 2)
-			{
-				resetCurrentPos = true;
+				_textMotions.items[i].targetPos = posFromGameF;
+				_textMotions.items[i].lastUsedFrame = _frame;
+				_textMotions.items[i].gamePos = posFromGame;
+				textIndex = i;
+				break;
 			}
 			else
 			{
-				auto distance = (posFromGameF - _textMotions.items[i].targetPos).Length();
-				if (distance > 32.0f)
+				Offset delta = _textMotions.items[i].gamePos - posFromGame;
+				if (std::abs(delta.x) <= TEXT_SEARCH_DIST.x &&
+					std::abs(delta.y) <= TEXT_SEARCH_DIST.y)
 				{
-					resetCurrentPos = true;
+					float lenDelta = OffsetF(delta).Length();
+					if (possibleIndex == -1 ||
+						(lenDelta < possibleDelta && possibleDelta - lenDelta >= TEXT_MIN_DELTA_LEN))
+					{
+						multiplePossible = false;
+						possibleDelta = lenDelta;
+						possibleIndex = i;
+					}
+					else {
+						multiplePossible = true;
+						possibleDelta = min(possibleDelta, lenDelta);
+					}
 				}
 			}
-
-			_textMotions.items[i].targetPos = posFromGameF;
-			if (resetCurrentPos)
-			{
-				_textMotions.items[i].currentPos = posFromGameF;
-			}
-			_textMotions.items[i].lastUsedFrame = _frame;
-			textIndex = i;
-			break;
 		}
 	}
 
 	if (textIndex < 0)
 	{
-		if (_textsCount < (int32_t)_textMotions.capacity)
+		if (possibleIndex >= 0 && !multiplePossible)
+		{
+			textIndex = possibleIndex;
+			_textMotions.items[possibleIndex].textAddress = textAddress;
+			_textMotions.items[possibleIndex].targetPos = posFromGameF;
+			_textMotions.items[possibleIndex].gamePos = posFromGame;
+			_textMotions.items[possibleIndex].lastUsedFrame = _frame;
+		}
+		else if (_textsCount < (int32_t)_textMotions.capacity)
 		{
 			textIndex = _textsCount++;
-			_textMotions.items[textIndex].id = textId;
+			_textMotions.items[textIndex].textAddress = textAddress;
+			_textMotions.items[textIndex].textHash = textHash;
 			_textMotions.items[textIndex].targetPos = posFromGameF;
 			_textMotions.items[textIndex].currentPos = posFromGameF;
+			_textMotions.items[textIndex].gamePos = posFromGame;
 			_textMotions.items[textIndex].lastUsedFrame = _frame;
 		}
 		else

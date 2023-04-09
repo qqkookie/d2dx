@@ -1301,13 +1301,7 @@ Offset D2DXContext::BeginDrawText(
 	if (d2Function != D2Function::D2Win_DrawText && IsFeatureEnabled(Feature::TextMotionPrediction))
 	{
 		auto hash = fnv_32a_buf((void*)str, wcslen(str), FNV1_32A_INIT);
-
-		const uint64_t textId =
-			(((uint64_t)(returnAddress & 0xFFFFFF) << 40ULL) |
-			((uint64_t)((uintptr_t)str & 0xFFFFFF) << 16ULL)) ^
-			(uint64_t)hash;
-
-		offset = _textMotionPredictor.GetOffset(textId, pos);
+		offset = _textMotionPredictor.GetOffset(reinterpret_cast<uintptr_t>(str), hash, pos);
 	}
 
 	if (_gameHelper->GetVersion() == GameVersion::Lod114d)

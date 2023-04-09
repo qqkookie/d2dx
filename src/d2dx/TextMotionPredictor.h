@@ -33,16 +33,19 @@ namespace d2dx
 			_In_ IRenderContext* renderContext);
 
 		Offset GetOffset(
-			_In_ uint64_t textId,
+			_In_ uintptr_t textAddress,
+			_In_ uint32_t textHash,
 			_In_ Offset posFromGame);
 
 	private:
 		struct TextMotion final
 		{
-			uint64_t id = 0;
+			uintptr_t textAddress = 0;
+			uint32_t textHash = 0;
 			uint32_t lastUsedFrame = 0;
 			OffsetF targetPos = { 0, 0 };
 			OffsetF currentPos = { 0, 0 };
+			Offset gamePos = { 0, 0 };
 			int64_t dtLastPosChange = 0;
 		};
 
