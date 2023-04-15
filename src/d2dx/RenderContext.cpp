@@ -734,6 +734,14 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 		else
 		{
 			renderContext->SetActiveWindow(false);
+			return 0;
+		}
+	}
+	else if (uMsg == WM_ACTIVATEAPP)
+	{
+		if (!wParam)
+		{
+			return 0;
 		}
 	}
 	else if (uMsg == WM_MOVING) {
