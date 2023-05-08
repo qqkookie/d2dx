@@ -750,7 +750,11 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 			DefSubclassProc(hWnd, WM_ACTIVATEAPP, FALSE, 0);
 		}
 	}
-	else if (uMsg == WM_MOVING) {
+	else if (uMsg == WM_WINDOWPOSCHANGED)
+	{
+		renderContext->ClipCursor(true);
+	}
+	else if (uMsg == WM_ENTERSIZEMOVE) {
 		renderContext->UnclipCursor();
 	}
 	else if (uMsg == WM_SYSKEYDOWN || uMsg == WM_KEYDOWN)
@@ -787,16 +791,16 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 		Rect renderRect;
 		Size desktopSize;
 		renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
-		const bool isFullscreen = renderContext->GetScreenMode() == ScreenMode::FullscreenDefault;
+
+		if (mousePos.x < renderRect.offset.x || renderRect.offset.x + renderRect.size.width < mousePos.x ||
+			mousePos.y < renderRect.offset.y || renderRect.offset.y + renderRect.size.height < mousePos.y)
+		{
+			return 0;
+		}
+
 		const float scale = (float)renderRect.size.height / gameSize.height;
-		const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
-		const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
-
-		mousePos.x = (int32_t)(max(0, mousePos.x - mouseOffsetX) / scale);
-		mousePos.y = (int32_t)(mousePos.y / scale);
-
-		lParam = mousePos.x;
-		lParam |= mousePos.y << 16;
+		lParam = static_cast<int32_t>((mousePos.x - renderRect.offset.x) / scale);
+		lParam |= static_cast<int32_t>((mousePos.y - renderRect.offset.y) / scale) << 16;
 	}
 
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);

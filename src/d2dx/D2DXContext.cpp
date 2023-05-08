@@ -1165,58 +1165,41 @@ _Use_decl_annotations_
 Offset D2DXContext::OnSetCursorPos(
 	Offset pos)
 {
-	auto currentScreenOpenMode = _gameHelper->ScreenOpenMode();
+	Size gameSize;
+	Rect renderRect;
+	Size desktopSize;
+	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
 
-	if (_lastScreenOpenMode != currentScreenOpenMode)
+	auto hWnd = _renderContext->GetHWnd();
+	ScreenToClient(hWnd, (LPPOINT)&pos);
+
+	if (pos.x < 0 || gameSize.width < pos.x ||
+		pos.y < 0 || gameSize.height < pos.y)
 	{
-		POINT originalPos;
-		GetCursorPos(&originalPos);
-
-		auto hWnd = _renderContext->GetHWnd();
-
-		ScreenToClient(hWnd, (LPPOINT)&pos);
-
-		Size gameSize;
-		Rect renderRect;
-		Size desktopSize;
-		_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
-
-		const bool isFullscreen = _renderContext->GetScreenMode() == ScreenMode::FullscreenDefault;
-		const float scale = (float)renderRect.size.height / gameSize.height;
-		const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
-		const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
-
-		pos.x = (int32_t)(pos.x * scale + mouseOffsetX);
-		pos.y = (int32_t)(pos.y * scale);
-
 		ClientToScreen(hWnd, (LPPOINT)&pos);
-
-		pos.y = originalPos.y;
-
 		return pos;
 	}
 
-	return { -1, -1 };
+	const float scale = (float)renderRect.size.height / gameSize.height;
+	pos.x = static_cast<int32_t>(pos.x * scale) + renderRect.offset.x;
+	pos.y = static_cast<int32_t>(pos.y * scale) + renderRect.offset.y;
+
+	ClientToScreen(hWnd, (LPPOINT)&pos);
+	return pos;
 }
 
 _Use_decl_annotations_
 Offset D2DXContext::OnMouseMoveMessage(
 	Offset pos)
 {
-	auto currentScreenOpenMode = _gameHelper->ScreenOpenMode();
-
 	Size gameSize;
 	Rect renderRect;
 	Size desktopSize;
 	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
 
-	const bool isFullscreen = _renderContext->GetScreenMode() == ScreenMode::FullscreenDefault;
 	const float scale = (float)renderRect.size.height / gameSize.height;
-	const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
-	const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
-
-	pos.x = (int32_t)(pos.x * scale + mouseOffsetX);
-	pos.y = (int32_t)(pos.y * scale);
+	pos.x = static_cast<int32_t>(pos.x * scale) + renderRect.offset.x;
+	pos.y = static_cast<int32_t>(pos.y * scale) + renderRect.offset.y;
 
 	return pos;
 }
