@@ -310,7 +310,6 @@ static const Hashes hashesPerCategory[(int)TextureCategory::Count] =
 {
 	{ 0, nullptr },
 	{ ARRAYSIZE(mousePointerHashes), mousePointerHashes },
-	{ 0, nullptr },
 	{ ARRAYSIZE(loadingScreenHashes), loadingScreenHashes },
 	{ /* Floor: don't bother keeping a list of hashes */ 0, nullptr },
 	{ ARRAYSIZE(titleScreenHashes), titleScreenHashes },
@@ -966,17 +965,9 @@ void* GameHelper::GetFunction(
 			hModule = _hD2GfxDll;
 			ordinal = 10076;
 			break;
-		case D2Function::D2Gfx_DrawShadow:
-			hModule = _hD2GfxDll;
-			ordinal = 10075;
-			break;
 		case D2Function::D2Win_DrawText:
 			hModule = _hD2WinDll;
 			ordinal = 10117;
-			break;
-		case D2Function::D2Win_DrawFramedText:
-			hModule = _hD2WinDll;
-			ordinal = 10129;
 			break;
 		case D2Function::D2Win_DrawRectangledText:
 			hModule = _hD2WinDll;
@@ -1017,17 +1008,9 @@ void* GameHelper::GetFunction(
 			hModule = _hD2GfxDll;
 			ordinal = 10076;
 			break;
-		case D2Function::D2Gfx_DrawShadow:
-			hModule = _hD2GfxDll;
-			ordinal = 10075;
-			break;
 		case D2Function::D2Win_DrawText:
 			hModule = _hD2WinDll;
 			ordinal = 10117;
-			break;
-		case D2Function::D2Win_DrawFramedText:
-			hModule = _hD2WinDll;
-			ordinal = 10129;
 			break;
 		case D2Function::D2Win_DrawRectangledText:
 			hModule = _hD2WinDll;
@@ -1068,17 +1051,9 @@ void* GameHelper::GetFunction(
 			hModule = _hD2GfxDll;
 			ordinal = 10012;
 			break;
-		case D2Function::D2Gfx_DrawShadow:
-			hModule = _hD2GfxDll;
-			ordinal = 10030;
-			break;
 		case D2Function::D2Win_DrawText:
 			hModule = _hD2WinDll;
 			ordinal = 10001;
-			break;
-		case D2Function::D2Win_DrawFramedText:
-			hModule = _hD2WinDll;
-			ordinal = 10031;
 			break;
 		case D2Function::D2Win_DrawRectangledText:
 			hModule = _hD2WinDll;
@@ -1121,17 +1096,9 @@ void* GameHelper::GetFunction(
 			hModule = _hD2GfxDll;
 			ordinal = 10046;
 			break;
-		case D2Function::D2Gfx_DrawShadow:
-			hModule = _hD2GfxDll;
-			ordinal = 10011;
-			break;
 		case D2Function::D2Win_DrawText:
 			hModule = _hD2WinDll;
 			ordinal = 10150;
-			break;
-		case D2Function::D2Win_DrawFramedText:
-			hModule = _hD2WinDll;
-			ordinal = 10085;
 			break;
 		case D2Function::D2Win_DrawRectangledText:
 			hModule = _hD2WinDll;
@@ -1173,22 +1140,10 @@ void* GameHelper::GetFunction(
 		case D2Function::D2Gfx_DrawImageFast:
 			hModule = _hD2GfxDll;
 			ordinal = 10006;
-			break;
-		case D2Function::D2Gfx_DrawShadow:
-			hModule = _hD2GfxDll;
-			ordinal = 10084;
-			break;
+			break;;
 		case D2Function::D2Win_DrawText:
 			hModule = _hD2WinDll;
 			ordinal = 10076;
-			break;
-		case D2Function::D2Win_DrawTextEx:
-			hModule = _hD2WinDll;
-			ordinal = 10084;
-			break;
-		case D2Function::D2Win_DrawFramedText:
-			hModule = _hD2WinDll;
-			ordinal = 10137;
 			break;
 		case D2Function::D2Win_DrawRectangledText:
 			hModule = _hD2WinDll;
@@ -1221,14 +1176,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hGameExe + 0xF6510);
 		case D2Function::D2Gfx_DrawImageFast:
 			return (void*)((uintptr_t)_hGameExe + 0xF6570);
-		case D2Function::D2Gfx_DrawShadow:
-			return (void*)((uintptr_t)_hGameExe + 0xF6540);
 		case D2Function::D2Win_DrawText:
 			return (void*)((uintptr_t)_hGameExe + 0x102320);
-		case D2Function::D2Win_DrawTextEx:
-			return (void*)((uintptr_t)_hGameExe + 0x102360);
-		case D2Function::D2Win_DrawFramedText:
-			return (void*)((uintptr_t)_hGameExe + 0x102280);
 		case D2Function::D2Win_DrawRectangledText:
 			return (void*)((uintptr_t)_hGameExe + 0x1023B0);
 		case D2Function::D2Client_DrawUnit:

@@ -85,13 +85,12 @@ namespace d2dx
 	{
 		Unknown = 0,
 		MousePointer = 1,
-		Player = 2,
-		LoadingScreen = 3,
-		Floor = 4,
-		TitleScreen = 5,
-		Wall = 6,
-		UserInterface = 7,
-		Count = 8
+		LoadingScreen = 2,
+		Floor = 3,
+		TitleScreen = 4,
+		Wall = 5,
+		UserInterface = 6,
+		Count = 7
 	};
 
 	enum class GameVersion

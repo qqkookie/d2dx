@@ -56,29 +56,28 @@ void Options::ApplyCfg(
 		return;
 	}
 
-	toml_table_t* optouts = toml_table_in(root, "optouts");
+	toml_table_t* options = toml_table_in(root, "optouts");
 
-	if (optouts)
+	if (options)
 	{
 		toml_datum_t datum;
 
 #define READ_OPTOUTS_FLAG(flag, cfgStringName) \
-	datum = toml_bool_in(optouts, cfgStringName); \
+	datum = toml_bool_in(options, cfgStringName); \
 	if (datum.ok) \
 	{ \
 		SetFlag(flag, datum.u.b); \
 	}
 
 		READ_OPTOUTS_FLAG(OptionsFlag::NoClipCursor, "noclipcursor");
-		READ_OPTOUTS_FLAG(OptionsFlag::NoFpsFix, "nofpsfix");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoResMod, "noresmod");
+		READ_OPTOUTS_FLAG(OptionsFlag::NoFpsMod, "nofpsmod");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoWide, "nowide");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoLogo, "nologo");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoVSync, "novsync");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoAntiAliasing, "noaa");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoCompatModeFix, "nocompatmodefix");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoTitleChange, "notitlechange");
-		READ_OPTOUTS_FLAG(OptionsFlag::NoMotionPrediction, "nomotionprediction");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoKeepAspectRatio, "nokeepaspectratio");
 
 #undef READ_OPTOUTS_FLAG
@@ -161,16 +160,16 @@ void Options::ApplyCommandLine(
 	const char* cmdLine)
 {
 	if (strstr(cmdLine, "-dxnoclipcursor")) SetFlag(OptionsFlag::NoClipCursor, true);
-	if (strstr(cmdLine, "-dxnofpsfix")) SetFlag(OptionsFlag::NoFpsFix, true);
 	if (strstr(cmdLine, "-dxnoresmod")) SetFlag(OptionsFlag::NoResMod, true);
+	if (strstr(cmdLine, "-dxnofpsmod")) SetFlag(OptionsFlag::NoFpsMod, true);
 	if (strstr(cmdLine, "-dxnowide")) SetFlag(OptionsFlag::NoWide, true);
 	if (strstr(cmdLine, "-dxnologo")) SetFlag(OptionsFlag::NoLogo, true);
 	if (strstr(cmdLine, "-dxnovsync")) SetFlag(OptionsFlag::NoVSync, true);
 	if (strstr(cmdLine, "-dxnoaa")) SetFlag(OptionsFlag::NoAntiAliasing, true);
 	if (strstr(cmdLine, "-dxnocompatmodefix")) SetFlag(OptionsFlag::NoCompatModeFix, true);
 	if (strstr(cmdLine, "-dxnotitlechange")) SetFlag(OptionsFlag::NoTitleChange, true);
-	if (strstr(cmdLine, "-dxnomop")) SetFlag(OptionsFlag::NoMotionPrediction, true);
 	if (strstr(cmdLine, "-dxnokeepaspectratio")) SetFlag(OptionsFlag::NoKeepAspectRatio, true);
+	if (strstr(cmdLine, "-dxvsync")) SetFlag(OptionsFlag::NoVSync, false);
 
 	char const* upscale = strstr(cmdLine, "-dxupscale=");
 	if (upscale)

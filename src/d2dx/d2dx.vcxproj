@@ -252,7 +252,7 @@
     <ClInclude Include="..\..\thirdparty\stb_image\stb_image_write.h" />
     <ClInclude Include="..\..\thirdparty\toml\toml.h" />
     <ClInclude Include="..\..\thirdparty\xxhash\xxhash.h" />
-    <ClInclude Include="BuiltinResMod.h" />
+    <ClInclude Include="BuiltinMods.h" />
     <ClInclude Include="CompatibilityModeDisabler.h" />
     <ClInclude Include="D2DXContextFactory.h" />
     <ClInclude Include="D2Types.h" />
@@ -262,8 +262,6 @@
     <ClInclude Include="dx256_bmp.h" />
     <ClInclude Include="ErrorHandling.h" />
     <ClInclude Include="Profiler.h" />
-    <ClInclude Include="TextMotionPredictor.h" />
-    <ClInclude Include="IBuiltinResMod.h" />
     <ClInclude Include="ID2DXContext.h" />
     <ClInclude Include="ID2InterceptionHandler.h" />
     <ClInclude Include="IWin32InterceptionHandler.h" />
@@ -285,7 +283,6 @@
     <ClInclude Include="TextureCachePolicyBitPmru.h" />
     <ClInclude Include="TextureHasher.h" />
     <ClInclude Include="Types.h" />
-    <ClInclude Include="UnitMotionPredictor.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DXContext.h" />
@@ -315,13 +312,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (Profile)|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (ResMod)|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="BuiltinResMod.cpp" />
+    <ClCompile Include="BuiltinMods.cpp" />
     <ClCompile Include="CompatibilityModeDisabler.cpp" />
     <ClCompile Include="D2DXContextFactory.cpp" />
     <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="Profiler.cpp" />
-    <ClCompile Include="TextMotionPredictor.cpp" />
     <ClCompile Include="Metrics.cpp" />
     <ClCompile Include="Options.cpp" />
     <ClCompile Include="RenderContextResources.cpp" />
@@ -350,7 +346,6 @@
     </ClCompile>
     <ClCompile Include="TextureCachePolicyBitPmru.cpp" />
     <ClCompile Include="TextureHasher.cpp" />
-    <ClCompile Include="UnitMotionPredictor.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="WeatherMotionPredictor.cpp" />
   </ItemGroup>

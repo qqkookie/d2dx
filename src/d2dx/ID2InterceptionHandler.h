@@ -28,15 +28,12 @@ namespace d2dx
 	{
 		virtual ~ID2InterceptionHandler() noexcept {}
 
-		virtual Offset BeginDrawText(
-			_Inout_z_ wchar_t* str,
-			_In_ Offset pos,
-			_In_ uint32_t returnAddress,
-			_In_ D2Function d2Function) = 0;
+		virtual void BeginDrawText(
+			_Inout_z_ wchar_t* str) = 0;
 
 		virtual void EndDrawText() = 0;
 
-		virtual Offset BeginDrawImage(
+		virtual void BeginDrawImage(
 			_In_ const D2::CellContextAny* cellContext,
 			_In_ uint32_t drawMode,
 			_In_ Offset pos,

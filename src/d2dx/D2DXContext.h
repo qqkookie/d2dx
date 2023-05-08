@@ -20,7 +20,7 @@
 
 #include "Batch.h"
 #include "Buffer.h"
-#include "IBuiltinResMod.h"
+#include "BuiltinMods.h"
 #include "ID2DXContext.h"
 #include "IGameHelper.h"
 #include "IGlide3x.h"
@@ -29,8 +29,6 @@
 #include "CompatibilityModeDisabler.h"
 #include "SurfaceIdTracker.h"
 #include "TextureHasher.h"
-#include "TextMotionPredictor.h"
-#include "UnitMotionPredictor.h"
 #include "WeatherMotionPredictor.h"
 #include "Vertex.h"
 
@@ -197,15 +195,12 @@ namespace d2dx
 
 #pragma region ID2InterceptionHandler
 
-		virtual Offset BeginDrawText(
-			_Inout_z_ wchar_t* str,
-			_In_ Offset pos,
-			_In_ uint32_t returnAddress,
-			_In_ D2Function d2Function) override;
+		virtual void BeginDrawText(
+			_Inout_z_ wchar_t* str) override;
 
 		virtual void EndDrawText() override;
 
-		virtual Offset BeginDrawImage(
+		virtual void BeginDrawImage(
 			_In_ const D2::CellContextAny* cellContext,
 			_In_ uint32_t drawMode,
 			_In_ Offset pos,
@@ -262,11 +257,9 @@ namespace d2dx
 		std::shared_ptr<IRenderContext> _renderContext;
 		std::shared_ptr<IGameHelper> _gameHelper;
 		std::shared_ptr<ISimd> _simd;
-		std::unique_ptr<IBuiltinResMod> _builtinResMod;
 		std::shared_ptr<CompatibilityModeDisabler> _compatibilityModeDisabler;
+		BuiltinMods _builtinMods;
 		TextureHasher _textureHasher;
-		UnitMotionPredictor _unitMotionPredictor;
-		TextMotionPredictor _textMotionPredictor;
 		WeatherMotionPredictor _weatherMotionPredictor;
 		SurfaceIdTracker _surfaceIdTracker;
 
