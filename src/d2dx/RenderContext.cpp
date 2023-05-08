@@ -734,7 +734,6 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 		else
 		{
 			renderContext->SetActiveWindow(false);
-			return 0;
 		}
 	}
 	else if (uMsg == WM_ACTIVATEAPP)
@@ -742,6 +741,13 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 		if (!wParam)
 		{
 			return 0;
+		}
+	}
+	else if (uMsg == WM_SIZE)
+	{
+		if (wParam == SIZE_MINIMIZED)
+		{
+			DefSubclassProc(hWnd, WM_ACTIVATEAPP, FALSE, 0);
 		}
 	}
 	else if (uMsg == WM_MOVING) {
