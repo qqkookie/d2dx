@@ -723,10 +723,12 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 	UINT_PTR uIdSubclass,
 	DWORD_PTR dwRefData)
 {
+	thread_local bool CURSOR_HIDDEN = false;
 	RenderContext* renderContext = (RenderContext*)dwRefData;
 
-	if (uMsg == WM_ACTIVATE)
+	switch (uMsg)
 	{
+	case WM_ACTIVATE:
 		if (wParam)
 		{
 			renderContext->SetActiveWindow(true);
@@ -735,72 +737,89 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 		{
 			renderContext->SetActiveWindow(false);
 		}
-	}
-	else if (uMsg == WM_ACTIVATEAPP)
-	{
+		break;
+
+	case WM_ACTIVATEAPP:
+		// Don't let the game minimize/pause itself when the window isn't selected.
 		if (!wParam)
 		{
 			return 0;
 		}
-	}
-	else if (uMsg == WM_SIZE)
-	{
+		break;
+
+	case WM_SIZE:
+		// Allow the game to pause itself when minimized.
 		if (wParam == SIZE_MINIMIZED)
 		{
 			DefSubclassProc(hWnd, WM_ACTIVATEAPP, FALSE, 0);
 		}
-	}
-	else if (uMsg == WM_WINDOWPOSCHANGED)
-	{
+		break;
+
+	case WM_WINDOWPOSCHANGED:
 		renderContext->ClipCursor(true);
-	}
-	else if (uMsg == WM_ENTERSIZEMOVE) {
+		break;
+
+	case WM_ENTERSIZEMOVE:
 		renderContext->UnclipCursor();
-	}
-	else if (uMsg == WM_SYSKEYDOWN || uMsg == WM_KEYDOWN)
-	{
+		break;
+
+	case WM_SYSKEYDOWN: case WM_KEYDOWN:
 		if (wParam == VK_RETURN && (HIWORD(lParam) & KF_ALTDOWN))
 		{
 			renderContext->ToggleFullscreen();
 			return 0;
 		}
-	}
-	else if (uMsg == WM_DESTROY)
-	{
+		break;
+
+	case WM_DESTROY:
 		RemoveWindowSubclass(hWnd, d2dxSubclassWndProc, 1234);
 		D2DXContextFactory::DestroyInstance();
-	}
-	else if (uMsg == WM_NCMOUSEMOVE)
-	{
-		ShowCursor_Real(TRUE);
+		break;
+
+	case WM_NCMOUSEMOVE:
+		if (CURSOR_HIDDEN)
+		{
+			ShowCursor_Real(TRUE);
+			CURSOR_HIDDEN = false;
+		}
 		return 0;
-	}
-	else if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
-	{
+
+	case WM_MOUSEMOVE:
 #ifdef NDEBUG
-		ShowCursor_Real(FALSE);
+			if (!CURSOR_HIDDEN)
+			{
+				ShowCursor_Real(FALSE);
+				CURSOR_HIDDEN = true;
+			}
 #endif
-		if (uMsg != WM_MOUSEMOVE)
+			[[fallthrough]];
+
+	default:
+		if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
 		{
-			renderContext->ClipCursor(false);
+
+			if (uMsg != WM_MOUSEMOVE)
+			{
+				renderContext->ClipCursor(false);
+			}
+
+			Offset mousePos = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+			Size gameSize;
+			Rect renderRect;
+			Size desktopSize;
+			renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
+
+			if (mousePos.x < renderRect.offset.x || renderRect.offset.x + renderRect.size.width < mousePos.x ||
+				mousePos.y < renderRect.offset.y || renderRect.offset.y + renderRect.size.height < mousePos.y)
+			{
+				return 0;
+			}
+
+			const float scale = (float)renderRect.size.height / gameSize.height;
+			lParam = static_cast<int32_t>((mousePos.x - renderRect.offset.x) / scale);
+			lParam |= static_cast<int32_t>((mousePos.y - renderRect.offset.y) / scale) << 16;
 		}
-
-		Offset mousePos = { LOWORD(lParam), HIWORD(lParam) };
-
-		Size gameSize;
-		Rect renderRect;
-		Size desktopSize;
-		renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
-
-		if (mousePos.x < renderRect.offset.x || renderRect.offset.x + renderRect.size.width < mousePos.x ||
-			mousePos.y < renderRect.offset.y || renderRect.offset.y + renderRect.size.height < mousePos.y)
-		{
-			return 0;
-		}
-
-		const float scale = (float)renderRect.size.height / gameSize.height;
-		lParam = static_cast<int32_t>((mousePos.x - renderRect.offset.x) / scale);
-		lParam |= static_cast<int32_t>((mousePos.y - renderRect.offset.y) / scale) << 16;
 	}
 
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
