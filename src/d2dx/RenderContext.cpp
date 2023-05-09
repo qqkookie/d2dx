@@ -941,28 +941,6 @@ void RenderContext::SetSizes(
 		_gameSize,
 		displaySize,
 		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
-	bool updateRenderSize = renderRect.size != _renderRect.size;
-	_renderRect = renderRect;
-
-	if (_resources)
-	{
-		if (_d2dxContext->GetOptions().GetUpscaleMethod() == UpscaleMethod::Rasterize)
-		{
-			if (updateRenderSize) {
-				_resources->SetFramebufferSize(renderRect.size, _device.Get());
-				SetRenderTargets(
-					_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
-					_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
-			}
-		}
-		else if (updateGameSize)
-		{
-			_resources->SetFramebufferSize(gameSize, _device.Get());
-			SetRenderTargets(
-				_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
-				_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
-		}
-	}
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
@@ -998,11 +976,17 @@ void RenderContext::SetSizes(
 
 		if (_windowSize.height > maxWindowSize.height)
 		{
-			const float aspectRatio = (float)maxWindowSize.width / maxWindowSize.height;
+			const float aspectRatio = (float)_windowSize.width / _windowSize.height;
 			_windowSize.height = maxWindowSize.height;
 			_windowSize.width = (int32_t)(_windowSize.height * aspectRatio);
+			if (_windowSize.width > maxWindowSize.width)
+			{
+				const float aspectRatio2 = (float)_windowSize.height / _windowSize.width;
+				_windowSize.width = maxWindowSize.width;
+				_windowSize.height = (int32_t)(_windowSize.width * aspectRatio2);
+			}
 
-			_renderRect = Metrics::GetRenderRect(
+			renderRect = Metrics::GetRenderRect(
 				_gameSize,
 				_windowSize,
 				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
@@ -1034,7 +1018,29 @@ void RenderContext::SetSizes(
 		SetWindowPos_Real(_hWnd, HWND_TOP, 0, 0, _desktopSize.width, _desktopSize.height, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
 	}
 
+	bool updateRenderSize = renderRect.size != _renderRect.size;
+	_renderRect = renderRect;
 	ClipCursor(true);
+
+	if (_resources)
+	{
+		if (_d2dxContext->GetOptions().GetUpscaleMethod() == UpscaleMethod::Rasterize)
+		{
+			if (updateRenderSize) {
+				_resources->SetFramebufferSize(renderRect.size, _device.Get());
+				SetRenderTargets(
+					_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+					_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+			}
+		}
+		else if (updateGameSize)
+		{
+			_resources->SetFramebufferSize(gameSize, _device.Get());
+			SetRenderTargets(
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+		}
+	}
 
 	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoTitleChange))
 	{
