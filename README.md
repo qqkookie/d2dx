@@ -22,7 +22,7 @@ Play in a window or in fullscreen, glitch-free, with or without enhancements lik
 ## Requirements
 
 - Windows 7 SP1 and above (10 recommended for latency improvements).
-- A CPU with SSE2 support.
+- A CPU with SSE4 support.
 - Integrated graphics or discrete GPU with DirectX 10.1 support.
 
 ## Version Compatibility
