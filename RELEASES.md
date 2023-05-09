@@ -1,3 +1,17 @@
+Version 0.100.1 (2023-05-08)
+============================
+
+New features
+------------
+
+- Don't let the game minimize when the window selection changes
+
+Bug fixes
+---------
+
+- Fix cursor locking area in window mode when the render area is smaller than the window size.
+- Don't make the window wider than it needs to be when the monitor's height is exceeded.
+
 Version 0.100.0 (2023-04-09)
 ============================
 
