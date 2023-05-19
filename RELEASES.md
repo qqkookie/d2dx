@@ -1,3 +1,12 @@
+Version 0.100.2 (2023-05-19)
+============================
+
+Bug fixes
+---------
+
+- Fix cursor behaviour when the render area's aspect ratio is not 4x3.
+- Fix cursor jumping when opening the left and right panels when the game started in fullscreen and the switched to windowed mode.
+
 Version 0.100.1 (2023-05-08)
 ============================
 
