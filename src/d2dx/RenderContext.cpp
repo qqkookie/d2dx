@@ -816,9 +816,10 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 				return 0;
 			}
 
-			const float scale = (float)renderRect.size.height / gameSize.height;
-			lParam = static_cast<int32_t>((mousePos.x - renderRect.offset.x) / scale);
-			lParam |= static_cast<int32_t>((mousePos.y - renderRect.offset.y) / scale) << 16;
+			const float xscale = (float)renderRect.size.width / gameSize.width;
+			const float yscale = (float)renderRect.size.height / gameSize.height;
+			lParam = static_cast<int32_t>((mousePos.x - renderRect.offset.x) / xscale);
+			lParam |= static_cast<int32_t>((mousePos.y - renderRect.offset.y) / yscale) << 16;
 		}
 	}
 

@@ -72,7 +72,8 @@ D2DXContext::D2DXContext(
 	_surfaceIdTracker{ gameHelper },
 	_textMotionPredictor{ gameHelper },
 	_unitMotionPredictor{ gameHelper },
-	_weatherMotionPredictor{ gameHelper }
+	_weatherMotionPredictor{ gameHelper },
+	_initialScreenMode(strstr(GetCommandLineA(), "-w") ? ScreenMode::Windowed : ScreenMode::FullscreenDefault)
 {
 	_threadId = GetCurrentThreadId();
 
@@ -223,15 +224,11 @@ void D2DXContext::OnSstWinOpen(
 
 	if (!_renderContext)
 	{
-		auto initialScreenMode = strstr(GetCommandLineA(), "-w") ?
-			ScreenMode::Windowed :
-			ScreenMode::FullscreenDefault;
-
 		_renderContext = std::make_shared<RenderContext>(
 			(HWND)hWnd,
 			gameSize,
 			windowSize * _options.GetWindowScale(),
-			initialScreenMode,
+			_initialScreenMode,
 			this,
 			_simd);
 	}
@@ -1171,7 +1168,10 @@ Offset D2DXContext::OnSetCursorPos(
 	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
 
 	auto hWnd = _renderContext->GetHWnd();
-	ScreenToClient(hWnd, (LPPOINT)&pos);
+	if (_initialScreenMode == ScreenMode::Windowed)
+	{
+		ScreenToClient(hWnd, (LPPOINT)&pos);
+	}
 
 	if (pos.x < 0 || gameSize.width < pos.x ||
 		pos.y < 0 || gameSize.height < pos.y)
@@ -1180,9 +1180,10 @@ Offset D2DXContext::OnSetCursorPos(
 		return pos;
 	}
 
-	const float scale = (float)renderRect.size.height / gameSize.height;
-	pos.x = static_cast<int32_t>(pos.x * scale) + renderRect.offset.x;
-	pos.y = static_cast<int32_t>(pos.y * scale) + renderRect.offset.y;
+	const float xscale = (float)renderRect.size.width / gameSize.width;
+	const float yscale = (float)renderRect.size.height / gameSize.height;
+	pos.x = static_cast<int32_t>(pos.x * xscale) + renderRect.offset.x;
+	pos.y = static_cast<int32_t>(pos.y * yscale) + renderRect.offset.y;
 
 	ClientToScreen(hWnd, (LPPOINT)&pos);
 	return pos;
@@ -1197,9 +1198,10 @@ Offset D2DXContext::OnMouseMoveMessage(
 	Size desktopSize;
 	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
 
-	const float scale = (float)renderRect.size.height / gameSize.height;
-	pos.x = static_cast<int32_t>(pos.x * scale) + renderRect.offset.x;
-	pos.y = static_cast<int32_t>(pos.y * scale) + renderRect.offset.y;
+	const float xscale = (float)renderRect.size.width / gameSize.width;
+	const float yscale = (float)renderRect.size.height / gameSize.height;
+	pos.x = static_cast<int32_t>(pos.x * xscale) + renderRect.offset.x;
+	pos.y = static_cast<int32_t>(pos.y * yscale) + renderRect.offset.y;
 
 	return pos;
 }

@@ -271,6 +271,7 @@ namespace d2dx
 		SurfaceIdTracker _surfaceIdTracker;
 
 		MajorGameState _majorGameState;
+		ScreenMode _initialScreenMode;
 
 		Buffer<uint64_t> _paletteKeys;
 
