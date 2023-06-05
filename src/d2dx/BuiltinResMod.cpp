@@ -105,6 +105,8 @@ bool WriteConfig(
         "       \"Ingame Resolutions\": [\r\n"
         "           \"640x480\",\r\n"
         "           \"800x600\",\r\n"
+        "           \"1024x768\",\r\n"
+        "           \"1280x720\",\r\n"
         "           \"%ix%i\"\r\n"
         "       ],\r\n"
         "       \"Ingame Resolution Mode\" : 2,\r\n"
