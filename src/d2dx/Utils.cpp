@@ -128,7 +128,7 @@ static void EnsureLogFileOpened()
 
 static DWORD WINAPI WriteToLogFileWorkItemFunc(PVOID pvContext)
 {
-    HaltSleepProfile _halt;
+    // HaltSleepProfile _halt;
     char* s = (char*)pvContext;
 
     OutputDebugStringA(s);
@@ -152,7 +152,7 @@ _Use_decl_annotations_
 void d2dx::detail::Log(
     const char* s)
 {
-    HaltSleepProfile _halt;
+    // HaltSleepProfile _halt;
     EnsureLogFileOpened();
     QueueUserWorkItem(WriteToLogFileWorkItemFunc, _strdup(s), WT_EXECUTEDEFAULT);
 }

@@ -104,7 +104,7 @@
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
       <FloatingPointExceptions>true</FloatingPointExceptions>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
     </ClCompile>
@@ -117,7 +117,9 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(OutDir)glide3x.dll" "C:\Program Files\Diablo II\"</Command>
+      <Command>IF "$(D2PATH)" == "" SET D2PATH=C:\Program Files\Diablo II\
+copy "$(OutDir)glide3x.dll" "$(D2PATH)"</Command>
+      <Message>Copy d2dx dll to game dir $(D2PATH)</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -139,7 +141,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
     </ClCompile>
@@ -154,7 +156,9 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(OutDir)glide3x.dll" "C:\Program Files\Diablo II\"</Command>
+      <Command>IF "$(D2PATH)" == "" SET D2PATH=C:\Program Files\Diablo II\
+copy "$(OutDir)glide3x.dll" "$(D2PATH)"</Command>
+      <Message>Copy d2dx dll to game dir $(D2PATH)</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (Profile)|Win32'">
@@ -176,7 +180,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
     </ClCompile>
@@ -191,7 +195,9 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(OutDir)glide3x.dll" "C:\Program Files\Diablo II\"</Command>
+      <Command>IF "$(D2PATH)" == "" SET D2PATH=C:\Program Files\Diablo II\
+copy "$(OutDir)glide3x.dll" "$(D2PATH)"</Command>
+      <Message>Copy d2dx dll to game dir $(D2PATH)</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (ResMod)|Win32'">
@@ -213,7 +219,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
     </ClCompile>
@@ -228,7 +234,9 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(OutDir)glide3x.dll" "C:\Program Files\Diablo II\"</Command>
+      <Command>IF "$(D2PATH)" == "" SET D2PATH=C:\Program Files\Diablo II\
+copy "$(OutDir)glide3x.dll" "$(D2PATH)"</Command>
+      <Message>Copy d2dx dll to game dir $(D2PATH)</Message>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>_UNICODE;UNICODE;D2DX_RES_MOD;%(PreprocessorDefinitions)</PreprocessorDefinitions>

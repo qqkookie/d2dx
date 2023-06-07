@@ -1,3 +1,13 @@
+Version 0.100.2+kookie (2023-06-07)
+=======================
+Added by Kookie.
+----------------------
+- Add 1280*720, 1024*768 to builtin ResMode.
+- Remap offending text colors.
+- Fix: Compatibility mode error due to win version
+- dev: Lang standard fixed to C++20 (pch.h error)
+- dev: Copy dll to %D2PATH%
+
 Version 0.100.2 (2023-05-19)
 ============================
 

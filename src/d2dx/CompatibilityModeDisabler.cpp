@@ -62,7 +62,8 @@ void CompatibilityModeDisabler::DisableCompatibilityMode()
 	auto reportedWindowsVersion = d2dx::GetWindowsVersion();
 	auto realWindowsVersion = d2dx::GetActualWindowsVersion();
 
-	if (reportedWindowsVersion.major != realWindowsVersion.major)
+        // NetServerGetInfo() in GetActualWindowsVersion() fails some times.
+	if (realWindowsVersion.major > 0 && reportedWindowsVersion.major != realWindowsVersion.major)
 	{
 		MessageBox(NULL, L"D2DX detected that 'compatibility mode' (e.g. for Windows XP) was set for the game, but this isn't necessary for D2DX and will cause problems.\n\nPlease disable 'compatibility mode' for both 'Game.exe' and 'Diablo II.exe'.", L"D2DX", MB_OK);
 		TerminateProcess(GetCurrentProcess(), -1);
