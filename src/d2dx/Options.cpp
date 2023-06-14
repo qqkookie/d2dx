@@ -108,7 +108,7 @@ void Options::ApplyCfg(
 		auto bilinearSharpness = toml_double_in(game, "bilinear-sharpness");
 		if (bilinearSharpness.ok)
 		{
-			SetBilinearSharpness(bilinearSharpness.u.d);
+			SetBilinearSharpness(static_cast<float>(bilinearSharpness.u.d));
 		}
 	}
 
@@ -259,5 +259,5 @@ float Options::GetBilinearSharpness() const
 void Options::SetBilinearSharpness(
 	_In_ float sharpness) noexcept
 {
-	_bilinearSharpness = max(sharpness, 1.0);
+	_bilinearSharpness = max(sharpness, 1.0f);
 }
