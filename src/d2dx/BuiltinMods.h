@@ -18,12 +18,16 @@
 */
 #pragma once
 
-#include "Types.h"
+#include "Options.h"
 
 namespace d2dx
 {
-    struct IBuiltinResMod abstract
+    class BuiltinMods final
     {
-        virtual ~IBuiltinResMod() noexcept {}
+    public:
+        void Init(
+            _In_ HMODULE hModule,
+            _In_ Size gameSize,
+            _In_ Options& options);
     };
 }

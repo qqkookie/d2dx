@@ -17,10 +17,9 @@
     along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "pch.h"
-#include "BuiltinResMod.h"
+#include "BuiltinMods.h"
 #include "Utils.h"
 #include "resource.h"
-#include "GameHelper.h"
 
 using namespace d2dx;
 
@@ -139,45 +138,75 @@ end:
 #endif
 
 _Use_decl_annotations_
-BuiltinResMod::BuiltinResMod(
+void BuiltinMods::Init(
     HMODULE hModule,
     Size gameSize,
-    const std::shared_ptr<IGameHelper>& gameHelper)
+    Options& options)
 {
-    if (!hModule || !gameHelper)
+    if (!hModule)
     {
-        D2DX_CHECK_HR(E_INVALIDARG);
+        return;
     }
 
+    if (!options.GetFlag(OptionsFlag::NoResMod))
+    {
 #ifdef D2DX_RES_MOD
-    D2DX_LOG("Writing SGD2FreeRes files.");
+        D2DX_LOG("Writing SGD2FreeRes files.");
 
-    if (!WriteResourceToFile(hModule, IDR_SGD2FR_MPQ, "mpq", "d2dx_sgd2freeres.mpq"))
-    {
-        D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
-        D2DX_CHECK_HR(E_UNEXPECTED);
-    }
+        if (!WriteResourceToFile(hModule, IDR_SGD2FR_MPQ, "mpq", "d2dx_sgd2freeres.mpq"))
+        {
+            options.SetFlag(OptionsFlag::NoResMod, true);
+            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+            goto LOAD_FPS;
+        }
 
-    if (!WriteResourceToFile(hModule, IDR_SGD2FR_DLL, "dll", "d2dx_sgd2freeres.dll"))
-    {
-        D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
-        D2DX_CHECK_HR(E_UNEXPECTED);
-    }
+        if (!WriteResourceToFile(hModule, IDR_SGD2FR_DLL, "dll", "d2dx_sgd2freeres.dll"))
+        {
+            options.SetFlag(OptionsFlag::NoResMod, true);
+            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+            goto LOAD_FPS;
+        }
 
-    if (!WriteConfig(gameSize))
-    {
-        D2DX_LOG("Failed to write SGD2FreeRes configuration.");
-        D2DX_CHECK_HR(E_UNEXPECTED);
-    }
+        if (!WriteConfig(gameSize))
+        {
+            options.SetFlag(OptionsFlag::NoResMod, true);
+            D2DX_LOG("Failed to write SGD2FreeRes configuration.");
+            goto LOAD_FPS;
+        }
 
-    D2DX_LOG("Initializing SGD2FreeRes.");
-    if (!LoadLibraryW(L"d2dx_sgd2freeres.dll")) {
-        D2DX_CHECK_HR(E_UNEXPECTED);
-    }
+        D2DX_LOG("Initializing SGD2FreeRes.");
+        if (!LoadLibraryW(L"d2dx_sgd2freeres.dll")) {
+            options.SetFlag(OptionsFlag::NoResMod, true);
+            D2DX_LOG("Failed to load d2dx_sgd2freeres.dll.");
+            goto LOAD_FPS;
+        }
 #else
-    D2DX_LOG("Initializing SGD2FreeRes.");
-    if (!LoadLibraryW(L"SGD2FreeRes.dll")) {
-        D2DX_CHECK_HR(E_UNEXPECTED);
-    }
+        D2DX_LOG("Initializing SGD2FreeRes.");
+        if (!LoadLibraryW(L"SGD2FreeRes.dll")) {
+            options.SetFlag(OptionsFlag::NoResMod, true);
+            D2DX_LOG("Failed to load SGD2FreeRes.dll");
+            goto LOAD_FPS;
+        }
 #endif
+    }
+
+    LOAD_FPS:
+    if (!options.GetFlag(OptionsFlag::NoFpsMod))
+    {
+        D2DX_LOG("Initializing D2FPS.");
+        HMODULE fps = LoadLibraryW(L"d2fps.dll");
+        if (!fps) {
+            options.SetFlag(OptionsFlag::NoFpsMod, true);
+            D2DX_LOG("Failed to load d2fps.dll");
+            return;
+        }
+
+        auto init = (void(__stdcall*)())GetProcAddress(fps, "_Init@0");
+        if (!init) {
+            options.SetFlag(OptionsFlag::NoFpsMod, true);
+            D2DX_LOG("Failed to load d2fps.dll");
+            return;
+        }
+        init();
+    }
 }

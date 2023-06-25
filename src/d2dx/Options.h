@@ -25,15 +25,14 @@ namespace d2dx
 	enum class OptionsFlag
 	{
 		NoClipCursor,
-		NoFpsFix,
 		NoResMod,
+		NoFpsMod,
 		NoWide,
 		NoLogo,
 		NoAntiAliasing,
 		NoCompatModeFix,
 		NoTitleChange,
 		NoVSync,
-		NoMotionPrediction,
 		NoKeepAspectRatio,
 
 		DbgDumpTextures,
@@ -98,7 +97,7 @@ namespace d2dx
 			_In_ float sharpness) noexcept;
 
 	private:
-		uint32_t _flags = 0;
+		uint32_t _flags = 1 << (int)OptionsFlag::NoVSync;
 		int32_t _windowScale = 1;
 		Offset _windowPosition{ -1, -1 };
 		Size _userSpecifiedGameSize{ -1, -1 };

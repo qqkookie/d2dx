@@ -20,7 +20,7 @@
 #include "D2DXContext.h"
 #include "D2DXContextFactory.h"
 #include "Detours.h"
-#include "BuiltinResMod.h"
+#include "BuiltinMods.h"
 #include "RenderContext.h"
 #include "GameHelper.h"
 #include "SimdSse2.h"
@@ -34,7 +34,6 @@ using namespace d2dx;
 using namespace DirectX::PackedVector;
 using namespace std;
 
-extern D2::UnitAny* currentlyDrawingUnit;
 extern uint32_t currentlyDrawingWeatherParticles;
 extern uint32_t* currentlyDrawingWeatherParticleIndexPtr;
 
@@ -70,8 +69,6 @@ D2DXContext::D2DXContext(
 	_options{ GetCommandLineOptions() },
 	_lastScreenOpenMode{ 0 },
 	_surfaceIdTracker{ gameHelper },
-	_textMotionPredictor{ gameHelper },
-	_unitMotionPredictor{ gameHelper },
 	_weatherMotionPredictor{ gameHelper },
 	_initialScreenMode(strstr(GetCommandLineA(), "-w") ? ScreenMode::Windowed : ScreenMode::FullscreenDefault)
 {
@@ -87,48 +84,13 @@ D2DXContext::D2DXContext(
 	D2DX_LOG("Apparent Windows version: %u.%u (build %u).", apparentWindowsVersion.major, apparentWindowsVersion.minor, apparentWindowsVersion.build);
 	D2DX_LOG("Actual Windows version: %u.%u (build %u).", actualWindowsVersion.major, actualWindowsVersion.minor, actualWindowsVersion.build);
 
-	switch (gameHelper->GetVersion())
-	{
-	case GameVersion::Lod109d:
-	case GameVersion::Lod110f:
-	case GameVersion::Lod112:
-	case GameVersion::Lod113c:
-	case GameVersion::Lod113d:
-	case GameVersion::Lod114d:
 #ifndef D2DX_UNITTEST
-		if (!_options.GetFlag(OptionsFlag::NoResMod))
-		{
-			try
-			{
-				_builtinResMod = std::make_unique<BuiltinResMod>(GetModuleHandleA("glide3x.dll"), GetSuggestedCustomResolution(), _gameHelper);
-			}
-			catch (...)
-			{
-				_options.SetFlag(OptionsFlag::NoResMod, true);
-			}
-		}
+	_builtinMods.Init(GetModuleHandleW(L"glide3x.dll"), GetSuggestedCustomResolution(), _options);
 #else
 		_options.SetFlag(OptionsFlag::NoResMod, true);
+		_options.SetFlag(OptionsFlag::NoFpsMod, true);
 #endif
-
-		if (!_options.GetFlag(OptionsFlag::NoFpsFix)) {
-			_gameHelper->TryApplyInGameFpsFix();
-			_gameHelper->TryApplyMenuFpsFix();
-			_gameHelper->TryApplyInGameSleepFixes();
-		}
-		else {
-			_options.SetFlag(OptionsFlag::NoMotionPrediction, true);
-		}
-
-		break;
-
-	default:
-		_options.SetFlag(OptionsFlag::NoResMod, true);
-		_options.SetFlag(OptionsFlag::NoFpsFix, true);
-		_options.SetFlag(OptionsFlag::NoMotionPrediction, true);
-		break;
 	}
-}
 
 D2DXContext::~D2DXContext() noexcept
 {
@@ -443,32 +405,6 @@ void D2DXContext::OnBufferSwap()
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
 
-	if (!_options.GetFlag(OptionsFlag::NoMotionPrediction) &&
-		_majorGameState == MajorGameState::InGame)
-	{
-		Timer _timer(ProfCategory::MotionPrediction);
-		const Offset offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
-
-		for (uint32_t i = 0; i < _batchCount; ++i)
-		{
-			const auto& batch = _batches.items[i];
-			auto surfaceId = _vertices.items[batch.GetStartVertex()].GetSurfaceId();
-
-			if (surfaceId != D2DX_SURFACE_ID_USER_INTERFACE &&
-				batch.GetTextureCategory() != TextureCategory::Player)
-			{
-				const auto batchVertexCount = batch.GetVertexCount();
-				auto vertexIndex = batch.GetStartVertex();
-				for (uint32_t j = 0; j < batchVertexCount; ++j)
-				{
-					_vertices.items[vertexIndex++].AddOffset(
-						-offset.x,
-						-offset.y);
-				}
-			}
-		}
-	}
-
 	{
 		Timer _timer(ProfCategory::DrawBatches);
 		auto startVertexLocation = _renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
@@ -651,7 +587,7 @@ void D2DXContext::OnDrawLine(
 	vertex0.SetTexcoord((int32_t)d2Vertex1->s >> _glideState.stShift, (int32_t)d2Vertex1->t >> _glideState.stShift);
 	vertex0.SetColor(maskedConstantColor | (d2Vertex1->color & iteratedColorMask));
 
-	if (!_options.GetFlag(OptionsFlag::NoMotionPrediction) &&
+	if (!_options.GetFlag(OptionsFlag::NoFpsMod) &&
 		currentlyDrawingWeatherParticles)
 	{
 		Timer _timer2(ProfCategory::MotionPrediction);
@@ -1254,38 +1190,24 @@ const Options& D2DXContext::GetOptions() const
 void D2DXContext::OnBufferClear()
 {
 	if (_majorGameState == MajorGameState::InGame &&
-		!_options.GetFlag(OptionsFlag::NoMotionPrediction))
+		!_options.GetFlag(OptionsFlag::NoFpsMod))
 	{
 		Timer _timer(ProfCategory::MotionPrediction);
-		_unitMotionPredictor.Update(_renderContext.get());
-		_textMotionPredictor.Update(_renderContext.get());
 		_weatherMotionPredictor.Update(_renderContext.get());
 	}
-}
+	}
 
 _Use_decl_annotations_
-Offset D2DXContext::BeginDrawText(
-	wchar_t* str,
-	Offset pos,
-	uint32_t returnAddress,
-	D2Function d2Function)
+void D2DXContext::BeginDrawText(
+	wchar_t* str)
 {
-	_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
-	_isDrawingText = true;
-
-	Offset offset{ 0, 0 };
-
 	if (!str)
 	{
-		return offset;
+		return;
 	}
 
-	if (d2Function != D2Function::D2Win_DrawText && !_options.GetFlag(OptionsFlag::NoMotionPrediction))
-	{
-		Timer _timer(ProfCategory::MotionPrediction);
-		auto hash = fnv_32a_buf((void*)str, wcslen(str), FNV1_32A_INIT);
-		offset = _textMotionPredictor.GetOffset(reinterpret_cast<uintptr_t>(str), hash, pos);
-	}
+	_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
+	_isDrawingText = true;
 
 	if (_gameHelper->GetVersion() == GameVersion::Lod114d)
 	{
@@ -1303,8 +1225,6 @@ Offset D2DXContext::BeginDrawText(
                             look[2] = remappings[opch - offenders];
                 }
 	}
-
-	return offset;
 }
 
 void D2DXContext::EndDrawText()
@@ -1314,71 +1234,24 @@ void D2DXContext::EndDrawText()
 }
 
 _Use_decl_annotations_
-Offset D2DXContext::BeginDrawImage(
+void D2DXContext::BeginDrawImage(
 	const D2::CellContextAny* cellContext,
 	uint32_t drawMode,
 	Offset pos,
 	D2Function d2Function)
 {
-	Offset offset{ 0,0 };
-
 	if (_isDrawingText)
 	{
-		return offset;
+		return;
 	}
 
-	if (currentlyDrawingUnit)
+	DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
+	const bool isMiscUi = drawParameters.unitType == 0 && drawParameters.unitMode == 0 && drawMode != 3;
+	const bool isBeltItem = drawParameters.unitType == 4 && drawParameters.unitMode == 4;
+	if (isMiscUi || isBeltItem)
 	{
-		bool isPlayer = currentlyDrawingUnit == _gameHelper->GetPlayerUnit();
-		if (isPlayer)
-		{
-			// The player unit itself.
-			_scratchBatch.SetTextureCategory(TextureCategory::Player);
-			_playerScreenPos = pos;
-		}
-
-		if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
-		{
-			Timer _timer(ProfCategory::MotionPrediction);
-			_unitMotionPredictor.SetUnitScreenPos(currentlyDrawingUnit, pos.x, pos.y);
-			if (!isPlayer)
-			{
-				offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
-			}
-		}
+		_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 	}
-	else
-	{
-		if (d2Function == D2Function::D2Gfx_DrawShadow)
-		{
-			const bool isPlayerShadow =
-				_playerScreenPos.x > 0 &&
-				max(abs(pos.x - _playerScreenPos.x), abs(pos.y - _playerScreenPos.y)) < 8;
-
-			if (isPlayerShadow)
-			{
-				_scratchBatch.SetTextureCategory(TextureCategory::Player);
-			}
-			else if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
-			{
-				Timer _timer(ProfCategory::MotionPrediction);
-				offset = _unitMotionPredictor.GetOffsetForShadow(pos.x, pos.y);
-			}
-		}
-		else
-		{
-			DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
-			const bool isMiscUi = drawParameters.unitType == 0 && drawParameters.unitMode == 0 && drawMode != 3;
-			const bool isBeltItem = drawParameters.unitType == 4 && drawParameters.unitMode == 4;
-
-			if (isMiscUi || isBeltItem)
-			{
-				_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
-			}
-		}
-	}
-
-	return offset;
 }
 
 void D2DXContext::EndDrawImage()
